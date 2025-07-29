@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Upload, Download, Music, Radio, Volume2, Trash2, Link, Unlink, Clock } from 'lucide-react';
+import { Play, Pause, Upload, Download, Music, Radio, Volume2, Trash2, Link, Unlink, Clock, Loader2 } from 'lucide-react';
 import io from 'socket.io-client';
 
 interface Track {
@@ -31,6 +31,8 @@ interface SpotifyStatus {
   connected: boolean;
   timeLeft: number;
   expiresAt: string | null;
+  credentialsConfigured: boolean;
+  setupRequired: boolean;
 }
 
 const AIMusicsCreator: React.FC = () => {
@@ -58,9 +60,18 @@ const AIMusicsCreator: React.FC = () => {
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
   
   // Spotify connection state
-  const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus>({ connected: false, timeLeft: 0, expiresAt: null });
+  const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus>({ 
+    connected: false, 
+    timeLeft: 0, 
+    expiresAt: null, 
+    credentialsConfigured: true, // Assume configured by default
+    setupRequired: false // Show connect button by default
+  });
   const [spotifyConnecting, setSpotifyConnecting] = useState<boolean>(false);
   const [spotifyError, setSpotifyError] = useState<string>('');
+  const [trainingMessage, setTrainingMessage] = useState<string>('');
+  const [isTraining, setIsTraining] = useState<boolean>(false);
+  const [trainingProgress, setTrainingProgress] = useState<string>('');
 
   const audioElementRef = useRef<HTMLAudioElement>(null);
   const sampleAudioRef = useRef<HTMLAudioElement>(null);
@@ -179,23 +190,32 @@ const AIMusicsCreator: React.FC = () => {
     }
   ];
 
-  // Fetch samples from Free Music Archive API
-  const fetchSamplesFromFMA = async (): Promise<Sample[]> => {
+  // Fetch samples from Spotify-trained model
+  const fetchTrainedSamples = async (): Promise<Sample[]> => {
     try {
       setLoadingSamples(true);
-      console.log('🎵 Loading royalty-free music database...');
+      console.log('🎵 Loading Spotify-trained samples...');
       
-      // For now, we'll use the curated Kevin MacLeod collection
-      // In a real implementation, this would fetch from FMA API
-      // const response = await fetch('https://freemusicarchive.org/api/get/tracks.json?api_key=YOUR_KEY&limit=10');
-      
-      // Simulate loading time for realistic feel
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return fallbackSamples;
+      const response = await fetch('http://localhost:3001/api/trained-samples');
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.samples.length > 0) {
+          console.log(`✅ Loaded ${data.samples.length} Spotify-trained samples`);
+          return data.samples;
+        } else if (data.showEmptyState) {
+          console.log('⚠️ Training not complete, showing empty state');
+          return []; // Return empty array to show empty state
+        } else {
+          console.log('⚠️ No training data available, using fallback samples');
+          return fallbackSamples;
+        }
+      } else {
+        throw new Error(`Failed to fetch trained samples: ${response.status}`);
+      }
       
     } catch (error) {
-      console.warn('Could not load music database, using fallback samples:', error);
+      console.warn('Could not load Spotify-trained samples, using fallback:', error);
       return fallbackSamples;
     } finally {
       setLoadingSamples(false);
@@ -205,14 +225,51 @@ const AIMusicsCreator: React.FC = () => {
   // Load samples on component mount
   useEffect(() => {
     const loadSamples = async () => {
-      const samples = await fetchSamplesFromFMA();
+      const samples = await fetchTrainedSamples();
       setSampleDatabaseLoaded(samples);
     };
     loadSamples();
+    
+    // Set up WebSocket connection for training updates
+    const socket = io('http://localhost:3001');
+    
+    socket.on('training_start', (data: { message: string }) => {
+      console.log('🎓 Training started:', data.message);
+      setIsTraining(true);
+      setTrainingProgress('Connecting to Spotify and searching for reggae tracks...');
+      setTrainingMessage('');
+    });
+    
+    socket.on('training_progress', (data: { message: string; current: number; total: number }) => {
+      console.log('📊 Training progress:', data);
+      setTrainingProgress(`Processing track ${data.current}/${data.total}: ${data.message}`);
+    });
+    
+    socket.on('training_complete', (data: { success: boolean; tracksAdded: number; message: string }) => {
+      console.log('✅ Training complete:', data);
+      setIsTraining(false);
+      setTrainingProgress('');
+      setTrainingMessage(data.message);
+      setTimeout(() => setTrainingMessage(''), 5000); // Clear after 5 seconds
+      
+      // Refresh samples to show newly trained tracks
+      const refreshSamples = async () => {
+        const samples = await fetchTrainedSamples();
+        setSampleDatabaseLoaded(samples);
+      };
+      refreshSamples();
+    });
+    
+    // Cleanup on unmount
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
-  // Use loaded samples or fallback
-  const sampleDatabase = sampleDatabaseLoaded.length > 0 ? sampleDatabaseLoaded : fallbackSamples;
+  // Use loaded samples, show empty state, or fallback
+  const sampleDatabase = sampleDatabaseLoaded.length > 0 ? sampleDatabaseLoaded : 
+                         sampleDatabaseLoaded.length === 0 && !loadingSamples ? [] : 
+                         fallbackSamples;
 
   const genres: string[] = ['pop', 'rock', 'jazz', 'electronic', 'hip-hop', 'classical', 'country', 'blues'];
   const keys: string[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -293,16 +350,57 @@ const AIMusicsCreator: React.FC = () => {
     };
   }, []);
 
+  // Separate effect for Spotify countdown timer - updates every second
+  useEffect(() => {
+    let countdownInterval: NodeJS.Timeout;
+    
+    if (spotifyStatus.connected && spotifyStatus.timeLeft > 0) {
+      countdownInterval = setInterval(() => {
+        setSpotifyStatus(prev => {
+          if (prev.timeLeft <= 1) {
+            // Time expired, disconnect
+            return {
+              ...prev,
+              connected: false,
+              timeLeft: 0,
+              expiresAt: null
+            };
+          }
+          return {
+            ...prev,
+            timeLeft: prev.timeLeft - 1
+          };
+        });
+      }, 1000); // Update every second
+    }
+    
+    return () => {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    };
+  }, [spotifyStatus.connected, spotifyStatus.timeLeft]);
+
   // Spotify functions
   const checkSpotifyStatus = async (): Promise<void> => {
     try {
       const response = await fetch('http://localhost:3001/api/spotify/status');
       if (response.ok) {
         const status: SpotifyStatus = await response.json();
+        console.log('📊 Spotify status:', status);
         setSpotifyStatus(status);
+      } else {
+        console.log('❌ Spotify status check failed:', response.status);
       }
     } catch (error) {
       console.error('Error checking Spotify status:', error);
+      // When backend is not available, assume setup is not required (fallback)
+      setSpotifyStatus(prev => ({ 
+        ...prev, 
+        connected: false,
+        setupRequired: false,
+        credentialsConfigured: true
+      }));
     }
   };
 
@@ -330,7 +428,13 @@ const AIMusicsCreator: React.FC = () => {
         method: 'POST'
       });
       if (response.ok) {
-        setSpotifyStatus({ connected: false, timeLeft: 0, expiresAt: null });
+        setSpotifyStatus({ 
+          connected: false, 
+          timeLeft: 0, 
+          expiresAt: null, 
+          credentialsConfigured: true, 
+          setupRequired: false 
+        });
         setSpotifyError('');
       }
     } catch (error: any) {
@@ -366,44 +470,48 @@ const AIMusicsCreator: React.FC = () => {
       sampleAudioRef.current.pause();
       sampleAudioRef.current.currentTime = 0;
       
-      // Try to get cached version first
-      console.log('📥 Requesting cached version of:', sample.title);
-      const cacheResponse = await fetch('http://localhost:3001/api/cache-song', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          songId: sample.id.toString(),
-          url: sample.previewUrl,
-          title: sample.title
-        })
-      });
-      
-      if (cacheResponse.ok) {
-        const cacheData = await cacheResponse.json();
-        console.log('✅ Using cached version:', cacheData.cachedUrl);
-        console.log('📊 Cache info:', cacheData.cacheInfo);
+      // For Spotify-trained samples, cache them for fast playback
+      if (sample.previewUrl && !sample.previewUrl.startsWith('spotify:')) {
+        console.log('📥 Caching Spotify-trained sample:', sample.title);
+        const cacheResponse = await fetch('http://localhost:3001/api/cache-song', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            songId: `spotify_${sample.id}`,
+            url: sample.previewUrl,
+            title: `${sample.artist} - ${sample.title}`
+          })
+        });
         
-        sampleAudioRef.current.volume = 0.7;
-        sampleAudioRef.current.src = cacheData.cachedUrl;
-        
-        const playPromise = sampleAudioRef.current.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('✅ Cached sample playing successfully');
-              setSamplePlaying(sample.id);
-            })
-            .catch(error => {
-              console.warn('⚠️ Cached sample playback failed:', error);
-              setSamplePlaying(null);
-            });
+        if (cacheResponse.ok) {
+          const cacheData = await cacheResponse.json();
+          console.log('✅ Using cached Spotify sample:', cacheData.cachedUrl);
+          
+          sampleAudioRef.current.volume = 0.7;
+          sampleAudioRef.current.src = cacheData.cachedUrl;
+          
+          const playPromise = sampleAudioRef.current.play();
+          
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log('✅ Spotify sample playing successfully');
+                setSamplePlaying(sample.id);
+              })
+              .catch(error => {
+                console.warn('⚠️ Spotify sample playback failed:', error);
+                setSamplePlaying(null);
+              });
+          }
+          return;
         }
-      } else {
-        console.warn('⚠️ Failed to cache song, using original URL');
-        // Fallback to original behavior
+      }
+      
+      // Fallback for other samples or if caching fails
+      if (sample.previewUrl && !sample.previewUrl.startsWith('spotify:')) {
+        console.log('🎵 Playing sample directly:', sample.previewUrl);
         sampleAudioRef.current.volume = 0.7;
         sampleAudioRef.current.crossOrigin = "anonymous";
         sampleAudioRef.current.src = sample.previewUrl;
@@ -413,7 +521,7 @@ const AIMusicsCreator: React.FC = () => {
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log('✅ Original sample playing successfully');
+              console.log('✅ Sample playing successfully');
               setSamplePlaying(sample.id);
             })
             .catch(() => {
@@ -421,6 +529,9 @@ const AIMusicsCreator: React.FC = () => {
               setSamplePlaying(null);
             });
         }
+      } else {
+        console.log('ℹ️ No playable preview URL available for this Spotify track');
+        setSamplePlaying(null);
       }
       
     } catch (error) {
@@ -439,7 +550,7 @@ const AIMusicsCreator: React.FC = () => {
       setGenerationStep('🚀 Connecting to AI generation server...');
       setGenerationProgress(5);
       
-      // Connect to socket for real-time updates
+      // Connect to socket for real-time music generation updates
       const socket = io('http://localhost:3001');
       
       socket.on('generation_status', (status: { message: string; progress: number; step: string }) => {
@@ -496,6 +607,13 @@ const AIMusicsCreator: React.FC = () => {
         
       } else {
         const errorData = await response.json();
+        if (errorData.requiresSpotify) {
+          setGenerationError('Please connect to Spotify first to generate authentic reggae music');
+        } else if (errorData.isTraining !== undefined) {
+          setGenerationError(errorData.message || 'The AI model is still training. Please wait...');
+        } else {
+          setGenerationError(errorData.error || `Server error: ${response.status}`);
+        }
         throw new Error(errorData.error || `Server error: ${response.status}`);
       }
       
@@ -575,10 +693,25 @@ const AIMusicsCreator: React.FC = () => {
           <div className="flex items-center justify-center space-x-3 mb-4">
             <Music className="w-10 h-10 text-purple-400" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              AI Music Creator
+              EMmusicGen
             </h1>
           </div>
-          <p className="text-lg text-white/80 mb-4">Create music with AI trained on open source samples</p>
+          <p className="text-lg text-white/80 mb-4">Student practice with first-time music generation</p>
+          
+          {/* Prominent Training Status Banner */}
+          {isTraining && (
+            <div className="mb-4 mx-auto max-w-lg">
+              <div className="bg-gradient-to-r from-blue-600/40 to-purple-600/40 border-2 border-blue-400/50 rounded-xl p-4 backdrop-blur-sm shadow-lg">
+                <div className="flex items-center justify-center">
+                  <Loader2 className="w-7 h-7 animate-spin mr-4 text-blue-300" />
+                  <div className="text-center">
+                    <div className="font-bold text-lg text-blue-200">🎓 AI Model Training in Progress</div>
+                    <div className="text-blue-300 text-sm mt-1">{trainingProgress || 'Initializing training...'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Connection Status */}
           <div className="flex items-center justify-center space-x-4 text-sm">
@@ -597,45 +730,59 @@ const AIMusicsCreator: React.FC = () => {
           
           {/* Spotify Connection Status */}
           <div className="mt-4 flex items-center justify-center space-x-4">
-            <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              spotifyStatus.connected 
-                ? 'bg-green-600/20 text-green-300 border border-green-600/30'
-                : 'bg-orange-600/20 text-orange-300 border border-orange-600/30'
-            }`}>
-              {spotifyStatus.connected ? (
-                <>
-                  <Link className="w-4 h-4" />
-                  <span>Spotify Connected</span>
-                  {spotifyStatus.timeLeft > 0 && (
-                    <div className="flex items-center space-x-1 text-xs">
-                      <Clock className="w-3 h-3" />
-                      <span>{formatTimeLeft(spotifyStatus.timeLeft)}</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Unlink className="w-4 h-4" />
-                  <span>Spotify Disconnected</span>
-                </>
-              )}
-            </div>
-            
-            {spotifyStatus.connected ? (
-              <button
-                onClick={disconnectFromSpotify}
-                className="px-3 py-1 bg-red-600/20 text-red-300 rounded-full hover:bg-red-600/30 transition-colors border border-red-600/30"
-              >
-                Disconnect
-              </button>
+            {spotifyStatus.setupRequired ? (
+              <div className="bg-blue-600/20 text-blue-300 border border-blue-600/30 px-4 py-2 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Music className="w-4 h-4" />
+                  <span>Spotify Setup Required</span>
+                </div>
+                <div className="text-xs mt-1 text-blue-400">
+                  Configure SPOTIFY_CLIENT_ID in .env for enhanced features
+                </div>
+              </div>
             ) : (
-              <button
-                onClick={connectToSpotify}
-                disabled={spotifyConnecting}
-                className="px-3 py-1 bg-green-600/20 text-green-300 rounded-full hover:bg-green-600/30 transition-colors border border-green-600/30 disabled:opacity-50"
-              >
-                {spotifyConnecting ? 'Connecting...' : 'Connect Spotify'}
-              </button>
+              <>
+                <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                  spotifyStatus.connected 
+                    ? 'bg-green-600/20 text-green-300 border border-green-600/30'
+                    : 'bg-orange-600/20 text-orange-300 border border-orange-600/30'
+                }`}>
+                  {spotifyStatus.connected ? (
+                    <>
+                      <Link className="w-4 h-4" />
+                      <span>Spotify Connected</span>
+                      {spotifyStatus.timeLeft > 0 && (
+                        <div className="flex items-center space-x-1 text-xs">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTimeLeft(spotifyStatus.timeLeft)}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Unlink className="w-4 h-4" />
+                      <span>Spotify Disconnected</span>
+                    </>
+                  )}
+                </div>
+                
+                {spotifyStatus.connected ? (
+                  <button
+                    onClick={disconnectFromSpotify}
+                    className="px-3 py-1 bg-red-600/20 text-red-300 rounded-full hover:bg-red-600/30 transition-colors border border-red-600/30"
+                  >
+                    Disconnect
+                  </button>
+                ) : (
+                  <button
+                    onClick={connectToSpotify}
+                    disabled={spotifyConnecting}
+                    className="px-3 py-1 bg-green-600/20 text-green-300 rounded-full hover:bg-green-600/30 transition-colors border border-green-600/30 disabled:opacity-50"
+                  >
+                    {spotifyConnecting ? 'Connecting...' : 'Connect Spotify'}
+                  </button>
+                )}
+              </>
             )}
           </div>
           
@@ -651,9 +798,40 @@ const AIMusicsCreator: React.FC = () => {
             </div>
           )}
           
-          {!spotifyStatus.connected && (
+          {!spotifyStatus.connected && !spotifyStatus.setupRequired && (
             <div className="mt-2 text-blue-400 text-sm bg-blue-900/20 border border-blue-600/30 rounded-lg p-3">
               💡 Connect your Spotify account to access better reggae training data from your music library
+            </div>
+          )}
+          
+          {spotifyStatus.setupRequired && (
+            <div className="mt-2 text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-3">
+              ⚙️ <strong>Optional:</strong> For enhanced music generation, see SPOTIFY_SETUP.md for Spotify integration setup
+            </div>
+          )}
+          
+          {isTraining && (
+            <div className="mt-2 text-blue-400 text-sm bg-blue-900/20 border border-blue-600/30 rounded-lg p-3 flex items-center">
+              <Loader2 className="w-5 h-5 animate-spin mr-3 text-blue-400" style={{
+                animation: 'spin 1s linear infinite'
+              }} />
+              <div className="flex-1">
+                <div className="font-semibold flex items-center">
+                  🎓 Training AI Model...
+                  <div className="ml-2 flex space-x-1">
+                    <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  </div>
+                </div>
+                <div className="text-blue-300 text-xs mt-1">{trainingProgress}</div>
+              </div>
+            </div>
+          )}
+          
+          {trainingMessage && !isTraining && (
+            <div className="mt-2 text-green-400 text-sm bg-green-900/20 border border-green-600/30 rounded-lg p-3">
+              🎓 {trainingMessage}
             </div>
           )}
         </div>
@@ -669,8 +847,8 @@ const AIMusicsCreator: React.FC = () => {
             <div className="space-y-4">
               {loadingSamples && (
                 <div className="text-center py-4">
-                  <div className="text-sm text-white/60">Loading royalty-free music database...</div>
-                  <div className="text-xs text-white/40 mt-1">Kevin MacLeod collection</div>
+                  <div className="text-sm text-white/60">Loading Spotify-trained samples...</div>
+                  <div className="text-xs text-white/40 mt-1">Training data from connected Spotify account</div>
                 </div>
               )}
               
@@ -683,7 +861,19 @@ const AIMusicsCreator: React.FC = () => {
               />
               
               <div className="max-h-80 overflow-y-auto space-y-2">
-                {filteredSamples.map(sample => (
+                {filteredSamples.length === 0 && !loadingSamples ? (
+                  <div className="text-center py-8">
+                    <Music className="w-12 h-12 text-white/30 mx-auto mb-3" />
+                    <p className="text-white/60 text-sm">No training samples available</p>
+                    <p className="text-white/40 text-xs mt-1">
+                      {!spotifyStatus.connected 
+                        ? 'Connect to Spotify to train the model'
+                        : 'Training in progress...'
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  filteredSamples.map(sample => (
                   <div
                     key={sample.id}
                     onClick={() => setSelectedSample(sample)}
@@ -727,7 +917,8 @@ const AIMusicsCreator: React.FC = () => {
                       ))}
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
               
               {selectedSample && (
@@ -829,10 +1020,13 @@ const AIMusicsCreator: React.FC = () => {
               
               <button
                 onClick={generateMusic}
-                disabled={isGenerating}
+                disabled={isGenerating || !spotifyStatus.connected || sampleDatabase.length === 0}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition-all duration-200"
               >
-                {isGenerating ? `AI Generating... ${generationProgress}%` : 'Generate with AI'}
+                {isGenerating ? `AI Generating... ${generationProgress}%` : 
+                 !spotifyStatus.connected ? 'Connect Spotify to Generate' :
+                 sampleDatabase.length === 0 ? 'Waiting for Training...' :
+                 'Generate with AI'}
               </button>
 
               {/* Progress Bar */}
