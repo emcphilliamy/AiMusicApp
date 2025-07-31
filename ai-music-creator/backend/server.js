@@ -97,6 +97,64 @@ class SongCache {
   }
 }
 
+// Built-in genre patterns for offline generation
+const fallbackPatterns = {
+  pop: {
+    drums: { kick: [1, 0, 1, 0, 1, 0, 1, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0], hihat: [1, 1, 1, 1, 1, 1, 1, 1] },
+    chords: ['C', 'Am', 'F', 'G'],
+    tempo: 120,
+    instruments: ['drums', 'bass', 'piano', 'guitar']
+  },
+  rock: {
+    drums: { kick: [1, 0, 0, 1, 1, 0, 0, 1], snare: [0, 0, 1, 0, 0, 0, 1, 0], hihat: [1, 1, 0, 1, 1, 1, 0, 1] },
+    chords: ['E', 'A', 'B', 'E'],
+    tempo: 140,
+    instruments: ['drums', 'bass', 'electric_guitar', 'guitar']
+  },
+  jazz: {
+    drums: { kick: [1, 0, 0, 1, 0, 1, 0, 0], snare: [0, 0, 1, 0, 0, 1, 0, 0], hihat: [1, 1, 1, 1, 1, 1, 1, 1] },
+    chords: ['Cmaj7', 'Am7', 'Dm7', 'G7'],
+    tempo: 110,
+    instruments: ['drums', 'bass', 'piano', 'sax']
+  },
+  electronic: {
+    drums: { kick: [1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0], hihat: [0, 1, 0, 1, 0, 1, 0, 1] },
+    chords: ['Am', 'F', 'C', 'G'],
+    tempo: 128,
+    instruments: ['drums', 'bass', 'synth', 'pad']
+  },
+  'hip-hop': {
+    drums: { kick: [1, 0, 0, 1, 0, 0, 1, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0], hihat: [1, 1, 0, 1, 1, 0, 1, 1] },
+    chords: ['Am', 'Dm', 'G', 'Am'],
+    tempo: 95,
+    instruments: ['drums', 'bass', 'synth', 'vocals']
+  },
+  classical: {
+    drums: { kick: [1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 0, 1, 0, 0, 0, 1], hihat: [0, 0, 0, 0, 0, 0, 0, 0] },
+    chords: ['C', 'F', 'G', 'C'],
+    tempo: 80,
+    instruments: ['strings', 'piano', 'flute', 'violin']
+  },
+  country: {
+    drums: { kick: [1, 0, 1, 0, 1, 0, 1, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0], hihat: [1, 1, 1, 1, 1, 1, 1, 1] },
+    chords: ['G', 'C', 'D', 'G'],
+    tempo: 100,
+    instruments: ['drums', 'bass', 'acoustic_guitar', 'fiddle']
+  },
+  blues: {
+    drums: { kick: [1, 0, 0, 1, 0, 0, 1, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0], hihat: [1, 0, 1, 0, 1, 0, 1, 0] },
+    chords: ['E7', 'A7', 'B7', 'E7'],
+    tempo: 90,
+    instruments: ['drums', 'bass', 'guitar', 'harmonica']
+  },
+  reggae: {
+    drums: { kick: [0, 0, 1, 0, 0, 0, 1, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0], hihat: [0, 1, 0, 1, 0, 1, 0, 1] },
+    chords: ['G', 'Em', 'C', 'D'],
+    tempo: 75,
+    instruments: ['drums', 'bass', 'guitar', 'organ']
+  }
+};
+
 const songCache = new SongCache(10);
 
 // Generation history tracking - prevent repetitive outputs
@@ -984,6 +1042,41 @@ class MusicAnalyzer {
 }
 
 // Advanced music generation with real-time status and training data
+// Fallback pattern generators for offline mode
+function generateFallbackBass(genrePattern, key, tempo) {
+  const keyOffset = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(key) || 0;
+  const bassNotes = [];
+  
+  // Generate 16 bass notes based on genre and key
+  for (let i = 0; i < 16; i++) {
+    if (genrePattern.drums.kick[i % 8]) {
+      bassNotes.push(36 + keyOffset); // Root note
+    } else {
+      bassNotes.push(0); // Rest
+    }
+  }
+  
+  return bassNotes;
+}
+
+function generateFallbackMelody(genrePattern, key, tempo) {
+  const keyOffset = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(key) || 0;
+  const melodyNotes = [];
+  const scale = [0, 2, 4, 5, 7, 9, 11]; // Major scale intervals
+  
+  // Generate 32 melody notes
+  for (let i = 0; i < 32; i++) {
+    if (Math.random() > 0.3) { // 70% chance of note
+      const scaleNote = scale[Math.floor(Math.random() * scale.length)];
+      melodyNotes.push(60 + keyOffset + scaleNote); // Middle C + key + scale note
+    } else {
+      melodyNotes.push(0); // Rest
+    }
+  }
+  
+  return melodyNotes;
+}
+
 async function generateAdvancedMusic(prompt, genre, tempo, key, socketId, sampleReference = null, maxRetries = 3) {
   const socket = io.sockets.sockets.get(socketId);
   const promptHash = generationHistory.createPromptHash(prompt, genre, tempo, key);
@@ -1077,7 +1170,7 @@ async function attemptGeneration(prompt, genre, tempo, key, socketId, sampleRefe
   console.log(`🔍 GENERATION DEBUG: Training cache size = ${reggaeTraining.cache ? reggaeTraining.cache.size() : 'no cache'}`);
   console.log(`🔍 GENERATION DEBUG: Training stats = ${JSON.stringify(reggaeTraining.getTrainingStats())}`);
   
-  // Use Spotify-trained patterns if available, otherwise fallback to base patterns
+  // Use Spotify-trained patterns if available, otherwise fallback to built-in genre patterns
   let selectedBass, selectedMelody, selectedChords, selectedRhythm;
   
   if (trainingData.length > 0) {
@@ -1221,11 +1314,24 @@ async function attemptGeneration(prompt, genre, tempo, key, socketId, sampleRefe
       key = mostCommonKey;
     }
   } else {
-    console.log(`⚠️ No Spotify training data available (${trainingData.length} tracks), using base reggae patterns`);
-    selectedBass = enhancedPatterns.basslines[Math.floor(Math.random() * enhancedPatterns.basslines.length)];
-    selectedMelody = enhancedPatterns.melodies[Math.floor(Math.random() * enhancedPatterns.melodies.length)];
-    selectedChords = enhancedPatterns.chords[Math.floor(Math.random() * enhancedPatterns.chords.length)];
-    selectedRhythm = enhancedPatterns.rhythms[Math.floor(Math.random() * enhancedPatterns.rhythms.length)];
+    console.log(`⚠️ No Spotify training data available (${trainingData.length} tracks), using built-in ${genre} patterns`);
+    
+    socket?.emit('generation_status', { 
+      step: 'fallback', 
+      message: `Using built-in ${genre} patterns for generation...`,
+      progress: 25
+    });
+    
+    // Use genre-specific fallback patterns
+    const genrePattern = fallbackPatterns[genre] || fallbackPatterns.reggae;
+    
+    // Generate simple but genre-appropriate patterns
+    selectedBass = generateFallbackBass(genrePattern, key, tempo);
+    selectedMelody = generateFallbackMelody(genrePattern, key, tempo);  
+    selectedChords = genrePattern.chords || ['C', 'Am', 'F', 'G'];
+    selectedRhythm = genrePattern.drums || { kick: [1, 0, 1, 0], snare: [0, 0, 1, 0], hihat: [1, 1, 1, 1] };
+    
+    console.log(`🎵 Generated ${genre} patterns - instruments: ${genrePattern.instruments.join(', ')}`);
   }
   
   // Apply variation for retry attempts
@@ -2842,45 +2948,45 @@ app.post('/api/upload', upload.single('audio'), (req, res) => {
 });
 
 app.post('/api/generate', async (req, res) => {
-  // Check if user is connected to Spotify (allow generation if training data exists)
+  // Check if user is connected to Spotify (allow generation if training data exists or fallback patterns available)
   const userStatus = spotifyAPI.getUserStatus();
   const trainingStats = reggaeTraining.getTrainingStats();
+  const { prompt, tempo, key, duration, genre: requestedGenre } = req.body;
+  const genre = requestedGenre || 'reggae';
   
+  // Allow generation with fallback patterns if no training data
+  let useTrainingData = true;
   if (!userStatus.connected && trainingStats.trackCount === 0) {
-    return res.status(403).json({
-      success: false,
-      error: 'Spotify connection required for music generation',
-      message: 'Please connect your Spotify account to generate authentic reggae music',
-      requiresSpotify: true
-    });
+    console.log(`⚠️ No Spotify connection or training data - using built-in ${genre} patterns`);
+    useTrainingData = false;
   }
 
-  // Check if model has training data
-  if (trainingStats.trackCount === 0) {
-    return res.status(422).json({
-      success: false,
-      error: 'Training data not available',
-      message: 'The AI model is still training on reggae tracks. Please wait for training to complete.',
-      isTraining: reggaeTraining.isTraining
-    });
+  // If model is still training, use fallback patterns
+  if (trainingStats.trackCount === 0 && reggaeTraining.isTraining) {
+    console.log(`🎓 Model still training - using built-in ${genre} patterns`);
+    useTrainingData = false;
   }
-
-  const { prompt, tempo, key, duration } = req.body;
   
-  // Force reggae genre
-  const genre = 'reggae';
-  const reggaeTempo = Math.max(60, Math.min(90, tempo || 75)); // Clamp to reggae tempo range
-  const reggaeKey = reggaePatterns.keys.includes(key) ? key : 'G'; // Default to G if not reggae-friendly
+  // Respect user tempo selection with genre-appropriate clamping
+  let adjustedTempo = tempo || 120;
+  if (genre === 'reggae') {
+    adjustedTempo = Math.max(60, Math.min(90, adjustedTempo));
+  } else {
+    adjustedTempo = Math.max(60, Math.min(180, adjustedTempo)); // Allow full UI range for other genres
+  }
   
-  console.log(`🎵 Generating reggae music with ${trainingStats.trackCount} trained tracks: "${prompt}" | Tempo: ${reggaeTempo} | Key: ${reggaeKey}`);
+  // Respect user key selection
+  const selectedKey = key || 'C';
+  
+  console.log(`🎵 Generating ${genre} music with ${trainingStats.trackCount} trained tracks: "${prompt}" | Tempo: ${adjustedTempo} | Key: ${selectedKey}`);
   
   try {
     const sampleReference = req.body.sampleReference || null;
     const socketId = req.headers['x-socket-id'] || null;
     
-    const result = await generateAdvancedMusic(prompt, genre, reggaeTempo, reggaeKey, socketId, sampleReference);
+    const result = await generateAdvancedMusic(prompt, genre, adjustedTempo, selectedKey, socketId, sampleReference);
     
-    console.log(`✅ Reggae music generated: ${result.filename}`);
+    console.log(`✅ ${genre} music generated: ${result.filename}`);
     
     res.json({
       success: true,
@@ -2892,11 +2998,11 @@ app.post('/api/generate', async (req, res) => {
         url: result.url,
         type: 'generated',
         prompt,
-        genre: 'reggae',
-        tempo: reggaeTempo,
-        key: reggaeKey,
+        genre: genre,
+        tempo: adjustedTempo,
+        key: selectedKey,
         duration: duration || 30,
-        instruments: ['bass', 'drums', 'melody', 'chords', 'skank'],
+        instruments: ['bass', 'drums', 'melody', 'chords', 'harmony'],
         sampleReference,
         similarityCheck: result.similarityCheck,
         attemptNumber: result.attemptNumber,
@@ -2904,10 +3010,10 @@ app.post('/api/generate', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Reggae music generation failed:', error);
+    console.error(`❌ ${genre} music generation failed:`, error);
     res.status(500).json({ 
       success: false, 
-      error: `Failed to generate reggae music: ${error.message}` 
+      error: `Failed to generate ${genre} music: ${error.message}` 
     });
   }
 });
