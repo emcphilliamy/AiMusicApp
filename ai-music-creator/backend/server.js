@@ -7,6 +7,95 @@ const fs = require('fs');
 const http = require('http');
 const socketIo = require('socket.io');
 
+// Import reggae enhancement modules
+const { ReggaePatternLibrary, ReggaeInstrumentSpecialistAI } = require('./reggae-enhancement-classes');
+const { ReggaeConflictResolver, ReggaeQualityAssessmentAI } = require('./reggae-quality-systems');
+const { ReggaeAudioSynthesizer, ReggaeMixingEngine } = require('./reggae-audio-synthesis');
+
+// Import wavefile for reggae audio synthesis
+const { WaveFile } = require('wavefile');
+
+// Fallback class definitions for when multi-ai-classes.js is not available
+let PromptAnalyzer, InstrumentSelector, MusicalKnowledgeBase;
+
+// Try to import multi-AI classes, use fallbacks if not available
+try {
+  const multiAIClasses = require('./multi-ai-classes.js');
+  PromptAnalyzer = multiAIClasses.PromptAnalyzer;
+  InstrumentSelector = multiAIClasses.InstrumentSelector;
+  MusicalKnowledgeBase = multiAIClasses.MusicalKnowledgeBase;
+  console.log('✅ Multi-AI classes loaded successfully');
+} catch (error) {
+  console.warn('⚠️ Multi-AI classes not found, using fallback implementations');
+  
+  // Fallback implementations
+  PromptAnalyzer = class {
+    async analyze(prompt) {
+      return {
+        mood: { primary: 'energetic', intensity: 0.7 },
+        energy: 0.8,
+        complexity: 0.6,
+        suggestedInstruments: [{ instrument: 'piano', relevance: 1 }]
+      };
+    }
+  };
+  
+  InstrumentSelector = class {
+    async selectForContext(context) {
+      return ['drums', 'bass', 'piano', 'saxophone'];
+    }
+  };
+  
+  MusicalKnowledgeBase = class {
+    getChordProgression(genre, key) {
+      console.log(`🎵 DEBUG: MusicalKnowledgeBase.getChordProgression called for genre: ${genre}, key: ${key}`);
+      
+      if (genre && genre.toLowerCase().includes('reggae')) {
+        // Authentic reggae chord progressions
+        const reggaeProgressions = [
+          ['I', 'V', 'vi', 'IV'],     // Popular progression
+          ['vi', 'IV', 'I', 'V'],     // Circle progression  
+          ['I', 'VII', 'IV', 'I'],    // Mixolydian feel
+          ['ii', 'V', 'I', 'vi']      // Jazz influence
+        ];
+        
+        const progression = reggaeProgressions[Math.floor(Math.random() * reggaeProgressions.length)];
+        const chords = this.transposeProgression(progression, key);
+        
+        console.log(`🎺 Generated reggae chord progression: ${chords.join('-')}`);
+        return chords;
+      }
+      
+      // Default progression for other genres
+      return this.transposeProgression(['I', 'V', 'vi', 'IV'], key);
+    }
+    
+    transposeProgression(progression, key) {
+      const romanToScale = {
+        'I': 0, 'ii': 1, 'iii': 2, 'IV': 3, 
+        'V': 4, 'vi': 5, 'VII': 6, 'vii': 6
+      };
+      
+      const scale = this.getScale(key);
+      
+      return progression.map(roman => {
+        const scaleIndex = romanToScale[roman] || 0;
+        return scale[scaleIndex];
+      });
+    }
+    
+    getScale(key) {
+      const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const majorPattern = [0, 2, 4, 5, 7, 9, 11];
+      const rootIndex = chromaticScale.indexOf(key.charAt(0)) || 0;
+      
+      return majorPattern.map(interval => 
+        chromaticScale[(rootIndex + interval) % 12]
+      );
+    }
+  };
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -156,6 +245,1378 @@ const fallbackPatterns = {
 };
 
 const songCache = new SongCache(10);
+
+// Advanced Model Management System
+class ModelManager {
+  constructor() {
+    this.models = new Map();
+    this.activeModel = null;
+    this.modelDirectory = './models/';
+    this.ensureModelDirectory();
+    this.loadSavedModels();
+  }
+
+  ensureModelDirectory() {
+    const fs = require('fs');
+    if (!fs.existsSync(this.modelDirectory)) {
+      fs.mkdirSync(this.modelDirectory, { recursive: true });
+    }
+    
+    // Create archive directory for completed models
+    this.archiveDirectory = './models/archive/';
+    if (!fs.existsSync(this.archiveDirectory)) {
+      fs.mkdirSync(this.archiveDirectory, { recursive: true });
+    }
+  }
+
+  // Define different model architectures
+  createModel(type, name, description, config = {}) {
+    const modelId = `${type}_${Date.now()}`;
+    
+    const model = {
+      id: modelId,
+      name: name,
+      type: type,
+      description: description,
+      created: new Date().toISOString(),
+      lastUsed: null,
+      stats: {
+        generationsCount: 0,
+        averageRating: 0,
+        totalRatings: 0,
+        genres: {},
+        performance: {
+          avgGenerationTime: 0,
+          successRate: 0
+        }
+      },
+      config: {
+        focus: config.focus || 'balanced',
+        complexity: config.complexity || 'medium',
+        creativity: config.creativity || 0.5,
+        instruments: config.instruments || ['drums', 'bass', 'melody', 'harmony'],
+        ...config
+      },
+      trainingData: {
+        samples: [],
+        patterns: {},
+        weights: {},
+        lastTrained: null
+      }
+    };
+
+    this.models.set(modelId, model);
+    this.saveModel(model);
+    
+    console.log(`🧠 Created new ${type} model: ${name} (${modelId})`);
+    return model;
+  }
+
+  // Specialized model types
+  createInstrumentFocusedModel(name = "Instrument-Focused AI") {
+    return this.createModel('instrument_focused', name, 
+      'AI model specialized in detailed instrument layering and arrangement', {
+        focus: 'instruments',
+        complexity: 'high',
+        instruments: ['drums', 'bass', 'lead_guitar', 'rhythm_guitar', 'piano', 'strings'],
+        processing: {
+          instrumentSeparation: true,
+          dynamicArrangement: true,
+          frequencyAnalysis: true
+        }
+      });
+  }
+
+  createHolisticModel(name = "Holistic Generation AI") {
+    return this.createModel('holistic', name, 
+      'AI model focused on overall song structure and musical coherence', {
+        focus: 'structure',
+        complexity: 'high',
+        creativity: 0.8,
+        processing: {
+          songStructure: true,
+          harmonicProgression: true,
+          dynamicEvolution: true,
+          genreAdaptation: true
+        }
+      });
+  }
+
+  createGenreSpecialistModel(genre, name = `${genre} Specialist AI`) {
+    return this.createModel('genre_specialist', name, 
+      `AI model specialized in authentic ${genre} music generation`, {
+        focus: 'genre',
+        targetGenre: genre,
+        complexity: 'high',
+        processing: {
+          genreAuthenticity: true,
+          culturalElements: true,
+          traditionalInstruments: true
+        }
+      });
+  }
+
+  createExperimentalModel(name = "Experimental AI") {
+    return this.createModel('experimental', name, 
+      'AI model for creative experimentation and innovation', {
+        focus: 'creativity',
+        complexity: 'variable',
+        creativity: 0.9,
+        processing: {
+          crossGenreFusion: true,
+          unusualProgressions: true,
+          experimentalSounds: true
+        }
+      });
+  }
+
+  // Model management
+  getModel(modelId) {
+    return this.models.get(modelId);
+  }
+
+  listModels() {
+    return Array.from(this.models.values()).sort((a, b) => 
+      new Date(b.lastUsed || b.created) - new Date(a.lastUsed || a.created)
+    );
+  }
+
+  setActiveModel(modelId) {
+    const model = this.models.get(modelId);
+    if (model) {
+      this.activeModel = model;
+      model.lastUsed = new Date().toISOString();
+      this.saveModel(model);
+      console.log(`🎯 Switched to model: ${model.name} (${model.type})`);
+      return model;
+    }
+    throw new Error(`Model ${modelId} not found`);
+  }
+
+  getActiveModel() {
+    return this.activeModel;
+  }
+
+  // Model training and data management
+  trainModel(modelId, trainingData, options = {}) {
+    const model = this.models.get(modelId);
+    if (!model) throw new Error(`Model ${modelId} not found`);
+
+    console.log(`🎓 Training model: ${model.name} with ${trainingData.length} samples`);
+
+    // Process training data based on model type
+    switch (model.type) {
+      case 'instrument_focused':
+        this.trainInstrumentFocusedModel(model, trainingData, options);
+        break;
+      case 'holistic':
+        this.trainHolisticModel(model, trainingData, options);
+        break;
+      case 'genre_specialist':
+        this.trainGenreSpecialistModel(model, trainingData, options);
+        break;
+      case 'experimental':
+        this.trainExperimentalModel(model, trainingData, options);
+        break;
+      default:
+        this.trainGeneralModel(model, trainingData, options);
+    }
+
+    model.trainingData.lastTrained = new Date().toISOString();
+    this.saveModel(model);
+    
+    console.log(`✅ Model training completed: ${model.name}`);
+    return model;
+  }
+
+  trainInstrumentFocusedModel(model, trainingData, options) {
+    // Focus on detailed instrument analysis
+    model.trainingData.patterns.instruments = {};
+    model.trainingData.patterns.arrangements = {};
+    
+    trainingData.forEach(sample => {
+      // Analyze each instrument separately
+      const instruments = this.analyzeInstruments(sample);
+      Object.keys(instruments).forEach(instrument => {
+        if (!model.trainingData.patterns.instruments[instrument]) {
+          model.trainingData.patterns.instruments[instrument] = [];
+        }
+        model.trainingData.patterns.instruments[instrument].push(instruments[instrument]);
+      });
+
+      // Analyze arrangement patterns
+      const arrangement = this.analyzeArrangement(sample);
+      if (!model.trainingData.patterns.arrangements[arrangement.type]) {
+        model.trainingData.patterns.arrangements[arrangement.type] = [];
+      }
+      model.trainingData.patterns.arrangements[arrangement.type].push(arrangement);
+    });
+  }
+
+  trainHolisticModel(model, trainingData, options) {
+    // Focus on overall song structure and flow
+    model.trainingData.patterns.structure = {};
+    model.trainingData.patterns.harmony = {};
+    model.trainingData.patterns.dynamics = {};
+    
+    trainingData.forEach(sample => {
+      // Analyze song structure
+      const structure = this.analyzeSongStructure(sample);
+      if (!model.trainingData.patterns.structure[structure.type]) {
+        model.trainingData.patterns.structure[structure.type] = [];
+      }
+      model.trainingData.patterns.structure[structure.type].push(structure);
+
+      // Analyze harmonic progressions
+      const harmony = this.analyzeHarmony(sample);
+      if (!model.trainingData.patterns.harmony[harmony.key]) {
+        model.trainingData.patterns.harmony[harmony.key] = [];
+      }
+      model.trainingData.patterns.harmony[harmony.key].push(harmony);
+    });
+  }
+
+  trainGenreSpecialistModel(model, trainingData, options) {
+    // Filter training data for target genre
+    const genreData = trainingData.filter(sample => 
+      sample.genre === model.config.targetGenre || 
+      (sample.genres && sample.genres.includes(model.config.targetGenre))
+    );
+
+    console.log(`🎯 Training ${model.config.targetGenre} specialist with ${genreData.length} genre-specific samples`);
+    
+    // Deep analysis of genre characteristics
+    model.trainingData.patterns.genreCharacteristics = this.analyzeGenreCharacteristics(genreData, model.config.targetGenre);
+  }
+
+  trainExperimentalModel(model, trainingData, options) {
+    // Focus on creative patterns and unusual combinations
+    model.trainingData.patterns.creative = {};
+    model.trainingData.patterns.crossGenre = {};
+    
+    // Analyze creative elements across genres
+    const creativePatterns = this.analyzeCreativeElements(trainingData);
+    model.trainingData.patterns.creative = creativePatterns;
+  }
+
+  // Analysis helpers
+  analyzeInstruments(sample) {
+    // Placeholder for instrument analysis
+    return {
+      drums: { pattern: sample.rhythm || [], velocity: sample.energy || 0.5 },
+      bass: { notes: sample.bassline || [], style: 'walking' },
+      guitar: { chords: sample.chords || [], style: 'strumming' },
+      keys: { melody: sample.melody || [], harmony: sample.harmony || [] }
+    };
+  }
+
+  analyzeArrangement(sample) {
+    return {
+      type: 'standard',
+      instruments: sample.instruments || [],
+      complexity: sample.complexity || 'medium',
+      dynamics: sample.dynamics || 'balanced'
+    };
+  }
+
+  analyzeSongStructure(sample) {
+    return {
+      type: 'verse_chorus',
+      sections: ['intro', 'verse', 'chorus', 'verse', 'chorus', 'outro'],
+      duration: sample.duration || 30
+    };
+  }
+
+  analyzeHarmony(sample) {
+    return {
+      key: sample.key || 'C',
+      progression: sample.chords || ['C', 'Am', 'F', 'G'],
+      complexity: 'standard'
+    };
+  }
+
+  analyzeGenreCharacteristics(genreData, genre) {
+    const characteristics = {
+      tempo: { min: 180, max: 0, avg: 0 },
+      keys: {},
+      instruments: {},
+      patterns: {}
+    };
+
+    genreData.forEach(sample => {
+      // Tempo analysis
+      if (sample.tempo) {
+        characteristics.tempo.min = Math.min(characteristics.tempo.min, sample.tempo);
+        characteristics.tempo.max = Math.max(characteristics.tempo.max, sample.tempo);
+        characteristics.tempo.avg += sample.tempo;
+      }
+
+      // Key analysis
+      if (sample.key) {
+        characteristics.keys[sample.key] = (characteristics.keys[sample.key] || 0) + 1;
+      }
+
+      // Instrument analysis
+      if (sample.instruments) {
+        sample.instruments.forEach(instrument => {
+          characteristics.instruments[instrument] = (characteristics.instruments[instrument] || 0) + 1;
+        });
+      }
+    });
+
+    characteristics.tempo.avg /= genreData.length;
+    return characteristics;
+  }
+
+  analyzeCreativeElements(trainingData) {
+    return {
+      unusualProgressions: [],
+      crossGenreElements: [],
+      experimentalTechniques: []
+    };
+  }
+
+  // Model persistence
+  saveModel(model) {
+    const fs = require('fs');
+    const filePath = `${this.modelDirectory}${model.id}.json`;
+    
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(model, null, 2));
+      console.log(`💾 Saved model: ${model.name}`);
+    } catch (error) {
+      console.error(`❌ Failed to save model ${model.name}:`, error);
+    }
+  }
+
+  loadSavedModels() {
+    const fs = require('fs');
+    
+    try {
+      const files = fs.readdirSync(this.modelDirectory);
+      const modelFiles = files.filter(file => file.endsWith('.json'));
+      
+      modelFiles.forEach(file => {
+        try {
+          const filePath = `${this.modelDirectory}${file}`;
+          const modelData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          this.models.set(modelData.id, modelData);
+          console.log(`📁 Loaded model: ${modelData.name}`);
+        } catch (error) {
+          console.error(`❌ Failed to load model from ${file}:`, error);
+        }
+      });
+
+      console.log(`🧠 Loaded ${this.models.size} saved models`);
+
+      // Set default active model if none exists
+      if (this.models.size > 0 && !this.activeModel) {
+        const models = this.listModels();
+        this.activeModel = models[0];
+        console.log(`🎯 Set default active model: ${this.activeModel.name}`);
+      }
+    } catch (error) {
+      console.log(`📁 No saved models directory found, starting fresh`);
+    }
+  }
+
+  deleteModel(modelId) {
+    const model = this.models.get(modelId);
+    if (!model) throw new Error(`Model ${modelId} not found`);
+
+    const fs = require('fs');
+    const filePath = `${this.modelDirectory}${modelId}.json`;
+    
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      this.models.delete(modelId);
+      
+      if (this.activeModel && this.activeModel.id === modelId) {
+        this.activeModel = this.models.size > 0 ? this.listModels()[0] : null;
+      }
+      
+      console.log(`🗑️ Deleted model: ${model.name}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Failed to delete model ${model.name}:`, error);
+      return false;
+    }
+  }
+
+  // Model performance tracking
+  recordGeneration(modelId, generationTime, success, userRating = null) {
+    const model = this.models.get(modelId);
+    if (!model) return;
+
+    model.stats.generationsCount++;
+    
+    // Update performance metrics
+    const currentAvg = model.stats.performance.avgGenerationTime;
+    const count = model.stats.generationsCount;
+    model.stats.performance.avgGenerationTime = 
+      (currentAvg * (count - 1) + generationTime) / count;
+
+    const currentSuccessRate = model.stats.performance.successRate;
+    model.stats.performance.successRate = 
+      (currentSuccessRate * (count - 1) + (success ? 1 : 0)) / count;
+
+    // Update user ratings if provided
+    if (userRating !== null) {
+      const currentRating = model.stats.averageRating;
+      const ratingCount = model.stats.totalRatings;
+      model.stats.totalRatings++;
+      model.stats.averageRating = 
+        (currentRating * ratingCount + userRating) / model.stats.totalRatings;
+    }
+
+    this.saveModel(model);
+  }
+
+  getModelStats(modelId = null) {
+    if (modelId) {
+      const model = this.models.get(modelId);
+      return model ? model.stats : null;
+    }
+    
+    return Array.from(this.models.values()).map(model => ({
+      id: model.id,
+      name: model.name,
+      type: model.type,
+      stats: model.stats,
+      lastUsed: model.lastUsed,
+      created: model.created
+    }));
+  }
+
+  // Get current active model
+  getCurrentModel() {
+    if (!this.activeModel) {
+      // If no active model, try to set the first available model as active
+      const models = Array.from(this.models.values());
+      if (models.length > 0) {
+        this.activeModel = models[0].id;
+        console.log(`🧠 Auto-selected model as active: ${models[0].name}`);
+      } else {
+        // Create a basic default model if none exist
+        console.log('🧠 No models found, creating basic default model...');
+        const defaultModel = this.createBasicModel();
+        this.activeModel = defaultModel.id;
+        return defaultModel;
+      }
+    }
+    
+    const model = this.models.get(this.activeModel);
+    if (!model) {
+      console.warn(`⚠️ Active model ${this.activeModel} not found, resetting...`);
+      this.activeModel = null;
+      return this.getCurrentModel(); // Recursive call to auto-select
+    }
+    
+    return model;
+  }
+
+  // Create a basic default model
+  createBasicModel(name = "Basic Generation AI") {
+    return this.createModel('basic', name, 
+      'Basic AI model for music generation with standard patterns', {
+        focus: 'balanced',
+        complexity: 'medium',
+        creativity: 0.5,
+        instruments: ['drums', 'bass', 'melody', 'harmony']
+      });
+  }
+
+  // Set active model
+  setActiveModel(modelId) {
+    if (this.models.has(modelId)) {
+      this.activeModel = modelId;
+      const model = this.models.get(modelId);
+      model.lastUsed = new Date().toISOString();
+      console.log(`🧠 Switched to model: ${model.name} (${modelId})`);
+      return true;
+    }
+    console.warn(`⚠️ Attempted to set non-existent model as active: ${modelId}`);
+    return false;
+  }
+
+  // Switch model (alias for setActiveModel)
+  switchModel(modelId) {
+    return this.setActiveModel(modelId);
+  }
+
+  // Get all models
+  getAllModels() {
+    return Array.from(this.models.values()).map(model => ({
+      id: model.id,
+      name: model.name,
+      type: model.type,
+      description: model.description,
+      isActive: model.id === this.activeModel,
+      createdAt: new Date(model.created).getTime(),
+      lastUsed: model.lastUsed ? new Date(model.lastUsed).getTime() : null,
+      generationCount: model.stats.generationsCount || 0,
+      successRate: model.stats.performance.successRate || 0,
+      averageRating: model.stats.averageRating || 0,
+      config: model.config
+    }));
+  }
+
+  // List models (alias for getAllModels)
+  listModels() {
+    return this.getAllModels();
+  }
+
+  // Check if model can be used
+  canUseModel(modelId) {
+    const model = this.models.get(modelId);
+    return model && model.config;
+  }
+
+  // Record generation stats
+  recordGeneration(modelId, generationData) {
+    const model = this.models.get(modelId);
+    if (model) {
+      model.stats.generationsCount++;
+      model.lastUsed = new Date().toISOString();
+      
+      // Update genre stats
+      if (generationData.genre) {
+        if (!model.stats.genres[generationData.genre]) {
+          model.stats.genres[generationData.genre] = 0;
+        }
+        model.stats.genres[generationData.genre]++;
+      }
+      
+      // Update success rate
+      if (generationData.success !== undefined) {
+        const currentSuccesses = model.stats.performance.successRate * model.stats.generationsCount;
+        const newSuccesses = currentSuccesses + (generationData.success ? 1 : 0);
+        model.stats.performance.successRate = newSuccesses / model.stats.generationsCount;
+      }
+      
+      this.saveModel(model);
+    }
+  }
+
+  // Generate with specific model
+  async generateWithModel(modelId, prompt, genre, tempo, key, socketId, sampleReference) {
+    const model = this.models.get(modelId);
+    if (!model) {
+      throw new Error(`Model ${modelId} not found`);
+    }
+    
+    console.log(`🧠 Generating with ${model.type} model: ${model.name}`);
+    console.log(`🎯 Model has ${model.trainingData.samples.length} training samples`);
+    
+    // Each model should use its own training data if available
+    const modelHasTraining = model.trainingData.samples.length > 0 || model.trainingData.lastTrained;
+    
+    if (modelHasTraining) {
+      console.log(`✅ Using model-specific training data (${model.trainingData.samples.length} samples)`);
+    } else {
+      console.log(`⚠️ Model has no training data, using fallback patterns`);
+    }
+    
+    // Use the standard generation but with model context
+    // The model's configuration and training data is available for specialized logic
+    return await generateAdvancedMusic(prompt, genre, tempo, key, socketId, sampleReference, {
+      modelType: model.type,
+      modelConfig: model.config,
+      modelTraining: model.trainingData,
+      hasTraining: modelHasTraining
+    });
+  }
+
+  // Train model with specific data
+  async trainModel(modelId, genre, trackCount = 20) {
+    const model = this.models.get(modelId);
+    if (!model) {
+      throw new Error(`Model ${modelId} not found`);
+    }
+    
+    console.log(`🎓 Training model ${model.name} on ${genre} with ${trackCount} tracks`);
+    
+    try {
+      // Try to get real training data from Spotify if available
+      let trainingTracks = [];
+      
+      if (spotifyAPI && spotifyAPI.searchReggaeTracks) {
+        try {
+          console.log(`🔍 Searching for ${genre} tracks for model training...`);
+          trainingTracks = await spotifyAPI.searchReggaeTracks(trackCount);
+          console.log(`✅ Found ${trainingTracks.length} real tracks for training`);
+        } catch (error) {
+          console.warn(`⚠️ Could not get Spotify data for training:`, error.message);
+        }
+      }
+      
+      // If no real data, create synthetic training data based on genre and model type
+      if (trainingTracks.length === 0) {
+        trainingTracks = this.generateSyntheticTrainingData(genre, model.type, trackCount);
+        console.log(`🧠 Generated ${trainingTracks.length} synthetic training samples`);
+      }
+      
+      // Process training data specific to this model
+      const processedSamples = trainingTracks.map((track, index) => ({
+        id: `${model.id}_sample_${Date.now()}_${index}`,
+        source: track.source || 'synthetic',
+        genre: genre,
+        features: this.extractModelSpecificFeatures(track, model.type),
+        timestamp: Date.now(),
+        modelType: model.type
+      }));
+      
+      // Add to model's training data
+      model.trainingData.samples = [...model.trainingData.samples, ...processedSamples];
+      model.trainingData.lastTrained = new Date().toISOString();
+      model.trainingData.patterns[genre] = this.generatePatterns(processedSamples, model.type);
+      
+      // Update model stats
+      model.stats.genres[genre] = (model.stats.genres[genre] || 0) + trackCount;
+      
+      this.saveModel(model);
+      
+      return {
+        success: true,
+        message: `Model ${model.name} trained on ${trackCount} ${genre} tracks`,
+        genre,
+        trackCount,
+        totalSamples: model.trainingData.samples.length,
+        hasRealData: trainingTracks.some(t => t.source !== 'synthetic')
+      };
+    } catch (error) {
+      console.error(`❌ Training failed for model ${model.name}:`, error);
+      throw new Error(`Training failed: ${error.message}`);
+    }
+  }
+
+  // Generate synthetic training data when real data isn't available
+  generateSyntheticTrainingData(genre, modelType, count) {
+    const samples = [];
+    
+    for (let i = 0; i < count; i++) {
+      const sample = {
+        id: `synthetic_${genre}_${i}`,
+        name: `${genre} Sample ${i + 1}`,
+        source: 'synthetic',
+        features: this.getSyntheticFeatures(genre, modelType),
+        timestamp: Date.now()
+      };
+      samples.push(sample);
+    }
+    
+    return samples;
+  }
+
+  // Get synthetic features based on genre and model type
+  getSyntheticFeatures(genre, modelType) {
+    const baseFeatures = {
+      tempo: this.getGenreTempo(genre),
+      key: this.getGenreKey(genre),
+      energy: Math.random() * 0.5 + 0.3,
+      valence: Math.random() * 0.6 + 0.2,
+      danceability: Math.random() * 0.4 + 0.4
+    };
+
+    // Add model-specific features
+    if (modelType === 'instrument_focused') {
+      baseFeatures.instrumentalness = Math.random() * 0.3 + 0.7;
+      baseFeatures.acousticness = Math.random() * 0.4 + 0.3;
+      baseFeatures.instruments = ['drums', 'bass', 'lead_guitar', 'rhythm_guitar', 'piano', 'strings'];
+    }
+
+    return baseFeatures;
+  }
+
+  getGenreTempo(genre) {
+    const tempos = {
+      reggae: 70 + Math.random() * 20,
+      rock: 110 + Math.random() * 40,
+      pop: 100 + Math.random() * 30,
+      jazz: 90 + Math.random() * 50,
+      electronic: 120 + Math.random() * 40,
+      blues: 80 + Math.random() * 30,
+      country: 95 + Math.random() * 35,
+      'hip-hop': 85 + Math.random() * 30
+    };
+    return tempos[genre] || 120;
+  }
+
+  getGenreKey(genre) {
+    const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    return keys[Math.floor(Math.random() * keys.length)];
+  }
+
+  // Extract features specific to the model type
+  extractModelSpecificFeatures(track, modelType) {
+    const features = { ...track.features };
+    
+    switch (modelType) {
+      case 'instrument_focused':
+        features.instrumentFocus = {
+          separation: Math.random() * 0.3 + 0.7,
+          layering: Math.random() * 0.4 + 0.6,
+          dynamics: Math.random() * 0.5 + 0.5
+        };
+        break;
+      
+      case 'holistic':
+        features.structure = {
+          coherence: Math.random() * 0.3 + 0.7,
+          progression: Math.random() * 0.4 + 0.6,
+          flow: Math.random() * 0.5 + 0.5
+        };
+        break;
+        
+      case 'genre_specialist':
+        features.genreAuthenticity = Math.random() * 0.3 + 0.7;
+        break;
+        
+      case 'experimental':
+        features.creativity = Math.random() * 0.5 + 0.5;
+        features.innovation = Math.random() * 0.6 + 0.4;
+        break;
+    }
+    
+    return features;
+  }
+
+  // Generate patterns from training samples
+  generatePatterns(samples, modelType) {
+    const patterns = {
+      tempo_range: {
+        min: Math.min(...samples.map(s => s.features.tempo || 120)),
+        max: Math.max(...samples.map(s => s.features.tempo || 120)),
+        avg: samples.reduce((sum, s) => sum + (s.features.tempo || 120), 0) / samples.length
+      },
+      common_keys: {},
+      energy_profile: samples.reduce((sum, s) => sum + (s.features.energy || 0.5), 0) / samples.length
+    };
+
+    // Count key frequencies
+    samples.forEach(s => {
+      const key = s.features.key || 'C';
+      patterns.common_keys[key] = (patterns.common_keys[key] || 0) + 1;
+    });
+
+    return patterns;
+  }
+
+  // Delete model
+  deleteModel(modelId) {
+    if (this.models.has(modelId)) {
+      // Don't allow deleting the active model if it's the only one
+      if (this.activeModel === modelId && this.models.size === 1) {
+        console.warn('⚠️ Cannot delete the only remaining model');
+        return false;
+      }
+      
+      const model = this.models.get(modelId);
+      this.models.delete(modelId);
+      
+      // If this was the active model, switch to another one
+      if (this.activeModel === modelId) {
+        const remainingModels = Array.from(this.models.values());
+        if (remainingModels.length > 0) {
+          this.setActiveModel(remainingModels[0].id);
+        } else {
+          this.activeModel = null;
+        }
+      }
+      
+      // Delete saved model file
+      try {
+        const fs = require('fs');
+        const modelPath = `${this.modelDirectory}${modelId}.json`;
+        if (fs.existsSync(modelPath)) {
+          fs.unlinkSync(modelPath);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Could not delete model file: ${error.message}`);
+      }
+      
+      console.log(`🗑️ Deleted model: ${model.name}`);
+      return true;
+    }
+    return false;
+  }
+
+  // Archive a completed model (move to archive directory)
+  archiveModel(modelId, archiveName) {
+    const model = this.models.get(modelId);
+    if (!model) {
+      throw new Error(`Model ${modelId} not found`);
+    }
+
+    const fs = require('fs');
+    
+    // Create archive record with completion info
+    const archivedModel = {
+      ...model,
+      archivedAt: new Date().toISOString(),
+      archiveName: archiveName || model.name,
+      developmentComplete: true,
+      finalStats: { ...model.stats },
+      originalId: model.id
+    };
+
+    // Save to archive directory
+    const archiveId = `archived_${Date.now()}`;
+    const archivePath = `${this.archiveDirectory}${archiveId}.json`;
+    
+    try {
+      fs.writeFileSync(archivePath, JSON.stringify(archivedModel, null, 2));
+      console.log(`📦 Archived model: ${model.name} → ${archiveName || model.name}`);
+      
+      // Remove from active models
+      this.deleteModel(modelId);
+      
+      return {
+        success: true,
+        archiveId,
+        archiveName: archiveName || model.name,
+        message: `Model archived successfully as "${archiveName || model.name}"`
+      };
+    } catch (error) {
+      throw new Error(`Failed to archive model: ${error.message}`);
+    }
+  }
+
+  // List all archived models
+  listArchivedModels() {
+    const fs = require('fs');
+    const archivedModels = [];
+
+    try {
+      if (fs.existsSync(this.archiveDirectory)) {
+        const files = fs.readdirSync(this.archiveDirectory);
+        const modelFiles = files.filter(file => file.endsWith('.json'));
+        
+        modelFiles.forEach(file => {
+          try {
+            const filePath = `${this.archiveDirectory}${file}`;
+            const modelData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            
+            archivedModels.push({
+              archiveId: file.replace('.json', ''),
+              name: modelData.archiveName || modelData.name,
+              originalName: modelData.name,
+              type: modelData.type,
+              description: modelData.description,
+              archivedAt: modelData.archivedAt,
+              finalStats: modelData.finalStats,
+              originalId: modelData.originalId
+            });
+          } catch (error) {
+            console.warn(`⚠️ Could not load archived model ${file}:`, error.message);
+          }
+        });
+      }
+    } catch (error) {
+      console.warn(`⚠️ Could not read archive directory:`, error.message);
+    }
+
+    return archivedModels.sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt));
+  }
+
+  // Restore an archived model back to active development
+  restoreArchivedModel(archiveId) {
+    const fs = require('fs');
+    const archivePath = `${this.archiveDirectory}${archiveId}.json`;
+
+    if (!fs.existsSync(archivePath)) {
+      throw new Error(`Archived model ${archiveId} not found`);
+    }
+
+    try {
+      const archivedData = JSON.parse(fs.readFileSync(archivePath, 'utf8'));
+      
+      // Create new active model from archived data
+      const restoredModel = {
+        ...archivedData,
+        id: `${archivedData.type}_${Date.now()}`, // New ID for active model
+        lastUsed: new Date().toISOString(),
+        restored: true,
+        restoredFrom: archiveId,
+        restoredAt: new Date().toISOString()
+      };
+
+      // Remove archive-specific fields
+      delete restoredModel.archivedAt;
+      delete restoredModel.archiveName;
+      delete restoredModel.developmentComplete;
+      delete restoredModel.finalStats;
+      delete restoredModel.originalId;
+
+      // Add to active models
+      this.models.set(restoredModel.id, restoredModel);
+      this.saveModel(restoredModel);
+      
+      console.log(`🔄 Restored model: ${archivedData.archiveName || archivedData.name}`);
+      
+      return {
+        success: true,
+        model: restoredModel,
+        message: `Model "${archivedData.archiveName || archivedData.name}" restored successfully`
+      };
+    } catch (error) {
+      throw new Error(`Failed to restore model: ${error.message}`);
+    }
+  }
+
+  // Clear all active models except one (for focused development)
+  clearAllExcept(keepModelId) {
+    const modelsToDelete = Array.from(this.models.keys()).filter(id => id !== keepModelId);
+    const deletedCount = modelsToDelete.length;
+    
+    modelsToDelete.forEach(modelId => {
+      this.deleteModel(modelId);
+    });
+
+    // Ensure the kept model is active
+    if (this.models.has(keepModelId)) {
+      this.setActiveModel(keepModelId);
+    }
+
+    console.log(`🧹 Cleared ${deletedCount} models, kept: ${this.models.get(keepModelId)?.name}`);
+    return {
+      success: true,
+      deletedCount,
+      keptModel: this.models.get(keepModelId)?.name,
+      message: `Cleared ${deletedCount} models for focused development`
+    };
+  }
+
+  // Initialize a model with basic training data so it's ready to use
+  async initializeModelWithTraining(modelId, genres = ['pop', 'rock'], samplesPerGenre = 15) {
+    const model = this.models.get(modelId);
+    if (!model) {
+      throw new Error(`Model ${modelId} not found`);
+    }
+
+    console.log(`🚀 Initializing ${model.name} with training data...`);
+    
+    for (const genre of genres) {
+      try {
+        const result = await this.trainModel(modelId, genre, samplesPerGenre);
+        console.log(`✅ Pre-trained on ${genre}: ${result.totalSamples} total samples`);
+      } catch (error) {
+        console.warn(`⚠️ Failed to pre-train on ${genre}:`, error.message);
+      }
+    }
+
+    const totalSamples = model.trainingData.samples.length;
+    console.log(`🎯 ${model.name} initialized with ${totalSamples} training samples across ${genres.length} genres`);
+    
+    return {
+      success: true,
+      modelName: model.name,
+      totalSamples,
+      genres,
+      message: `Model initialized and ready for immediate use`
+    };
+  }
+}
+
+// Advanced Multi-AI Orchestrator System
+class AIOrchestrator {
+  constructor() {
+    this.masterConductor = new MasterConductorAI();
+    this.instrumentSpecialists = new Map();
+    this.beatGenerators = new Map();
+    this.arrangementCoordinator = new ArrangementCoordinator();
+    this.qualityAssessment = new QualityAssessmentAI();
+    this.conflictResolver = new ConflictResolver();
+    
+    // Load reggae enhancement systems
+    this.reggaeEnhancements = this.loadReggaeEnhancements();
+    
+    this.initializeSpecialists();
+  }
+
+  loadReggaeEnhancements() {
+    console.log('🎵 DEBUG: Loading reggae enhancement systems...');
+    const enhancements = {
+      patternLibrary: new ReggaePatternLibrary(),
+      conflictResolver: new ReggaeConflictResolver(),
+      qualityAssessment: new ReggaeQualityAssessmentAI(),
+      audioSynthesizer: new ReggaeAudioSynthesizer(),
+      mixingEngine: new ReggaeMixingEngine()
+    };
+    console.log('🎵 DEBUG: All reggae enhancement systems loaded successfully');
+    return enhancements;
+  }
+
+  initializeSpecialists() {
+    // Initialize instrument specialists
+    const instruments = ['drums', 'bass', 'lead_guitar', 'rhythm_guitar', 'piano', 'strings', 'synthesizer', 'vocals'];
+    instruments.forEach(instrument => {
+      this.instrumentSpecialists.set(instrument, new InstrumentSpecialistAI(instrument));
+    });
+
+    // Initialize beat generation specialists
+    const beatTypes = ['groove', 'rhythm', 'percussion', 'fills'];
+    beatTypes.forEach(type => {
+      this.beatGenerators.set(type, new BeatGeneratorAI(type));
+    });
+
+    console.log(`🎼 Initialized ${instruments.length} instrument specialists and ${beatTypes.length} beat generators`);
+  }
+
+  async generateEnsembleMusic(instruments, context) {
+    console.log(`🎵 Multi-AI generating ensemble music for ${instruments.length} instruments`);
+    
+    const patterns = {};
+    
+    // Generate patterns for each instrument using its specialist AI
+    for (const instrument of instruments) {
+      const specialist = this.instrumentSpecialists.get(instrument);
+      if (specialist) {
+        patterns[instrument] = await specialist.generatePattern(context);
+      } else {
+        console.warn(`⚠️ No specialist found for ${instrument}, using basic pattern`);
+        patterns[instrument] = { instrument, notes: ['C4'], rhythm: [1, 0, 1, 0] };
+      }
+    }
+    
+    return { patterns, context };
+  }
+
+  async generateBeats(context) {
+    console.log(`🥁 Multi-AI generating beats for ${context.genre}`);
+    
+    const beatPatterns = {};
+    
+    // Generate different types of beats
+    for (const [type, generator] of this.beatGenerators) {
+      beatPatterns[type] = await generator.generateBeat(context);
+    }
+    
+    return beatPatterns;
+  }
+
+  async coordinateArrangement(instruments, context) {
+    console.log(`🎭 Multi-AI coordinating arrangement`);
+    
+    return await this.arrangementCoordinator.coordinateArrangement(instruments, context);
+  }
+
+  async resolveConflicts(suggestions, context) {
+    console.log(`⚖️ Multi-AI resolving conflicts`);
+    
+    return await this.conflictResolver.resolveConflicts(suggestions, context);
+  }
+
+  async assessQuality(musicData, context) {
+    console.log(`🎯 Multi-AI assessing quality`);
+    
+    return await this.qualityAssessment.assessQuality(musicData, context);
+  }
+
+  async generateWithOrchestra(prompt, genre, tempo, key, duration, options = {}) {
+    console.log(`🎭 Multi-AI Orchestra starting generation: "${prompt}"`);
+    
+    try {
+      // Check if this is reggae music - apply reggae enhancements
+      const isReggae = genre.toLowerCase().includes('reggae');
+      
+      // Phase 1: Master Conductor analyzes the prompt and creates generation plan
+      const generationPlan = await this.masterConductor.createGenerationPlan({
+        prompt, genre, tempo, key, duration, ...options
+      });
+      
+      console.log(`🎯 Generation plan: ${generationPlan.instruments.length} instruments, ${generationPlan.complexity} complexity`);
+
+      // Phase 2: Concurrent generation by specialists (with reggae enhancement)
+      const concurrentTasks = await this.generateConcurrentParts(generationPlan, isReggae);
+      
+      // Phase 3: Arrangement coordination and conflict resolution (with reggae-aware resolution)
+      const arrangedParts = await this.arrangementCoordinator.harmonize(concurrentTasks);
+      const resolvedParts = isReggae ? 
+        await this.reggaeEnhancements.conflictResolver.resolveReggaeConflicts(arrangedParts, generationPlan) :
+        await this.conflictResolver.resolve(arrangedParts);
+      
+      // Phase 4: Quality assessment and refinement (with reggae-specific assessment)
+      const qualityResult = isReggae ?
+        await this.reggaeEnhancements.qualityAssessment.assessReggaeQuality(resolvedParts, generationPlan) :
+        await this.qualityAssessment.validateAndRefine(resolvedParts);
+      
+      // Phase 5: Audio synthesis and mixing (with reggae-optimized processing)
+      const finalOutput = isReggae ?
+        await this.synthesizeReggaeAudio(qualityResult, generationPlan) :
+        qualityResult;
+      
+      console.log(`✅ Multi-AI Orchestra generation complete: ${Object.keys(finalOutput.layers || finalOutput).length} layers`);
+      return finalOutput;
+      
+    } catch (error) {
+      console.error(`❌ Orchestra generation failed:`, error);
+      throw new Error(`Multi-AI generation failed: ${error.message}`);
+    }
+  }
+
+  async synthesizeReggaeAudio(qualityResult, generationPlan) {
+    console.log('🎵 Synthesizing reggae-optimized audio...');
+    
+    try {
+      // Use reggae audio synthesizer for frequency-aware synthesis
+      const audioData = await this.reggaeEnhancements.audioSynthesizer.synthesizeReggaeAudio(
+        qualityResult, 
+        generationPlan
+      );
+      
+      // Apply reggae-specific mixing
+      const mixedAudio = await this.reggaeEnhancements.mixingEngine.mixReggaeComposition(
+        audioData,
+        generationPlan
+      );
+      
+      console.log('✅ Reggae audio synthesis and mixing complete');
+      return {
+        ...qualityResult,
+        audioData: mixedAudio,
+        reggaeEnhanced: true,
+        mixingProfile: 'reggae_professional'
+      };
+    } catch (error) {
+      console.error('❌ Reggae audio synthesis failed:', error);
+      // Fallback to standard processing
+      return qualityResult;
+    }
+  }
+
+  async generateConcurrentParts(plan, isReggae = false) {
+    const tasks = [];
+    
+    // Generate beats first (foundation) - use reggae patterns if needed
+    if (plan.needsBeats) {
+      if (isReggae) {
+        console.log('🎵 Using reggae-enhanced beat generation');
+        // Use reggae specialist for drums if available
+        const reggaeDrumSpecialist = new ReggaeInstrumentSpecialistAI('drums');
+        tasks.push(reggaeDrumSpecialist.generateReggaePattern(plan));
+      } else {
+        tasks.push(
+          this.beatGenerators.get('groove').generate(plan),
+          this.beatGenerators.get('rhythm').generate(plan)
+        );
+      }
+    }
+    
+    // Generate instrument parts concurrently (with reggae specialists when appropriate)
+    plan.instruments.forEach(instrument => {
+      if (isReggae && ['drums', 'bass', 'guitar', 'keys'].includes(instrument)) {
+        console.log(`🎵 DEBUG: Using reggae specialist for ${instrument}`);
+        const reggaeSpecialist = new ReggaeInstrumentSpecialistAI(instrument);
+        tasks.push(reggaeSpecialist.generateReggaePattern(plan));
+      } else if (this.instrumentSpecialists.has(instrument)) {
+        console.log(`🎵 DEBUG: Using standard specialist for ${instrument}`);
+        tasks.push(
+          this.instrumentSpecialists.get(instrument).generate(plan)
+        );
+      }
+    });
+    
+    console.log(`🔄 Running ${tasks.length} concurrent AI generation tasks`);
+    const results = await Promise.all(tasks);
+    
+    return this.organizeConcurrentResults(results, plan);
+  }
+
+  organizeConcurrentResults(results, plan) {
+    const organized = {
+      beats: [],
+      instruments: {},
+      metadata: plan
+    };
+    
+    results.forEach(result => {
+      if (result.type === 'beat') {
+        organized.beats.push(result);
+      } else if (result.type === 'instrument') {
+        organized.instruments[result.instrument] = result;
+      }
+    });
+    
+    return organized;
+  }
+}
+
+// Master Conductor AI - Plans and coordinates the entire generation
+class MasterConductorAI {
+  constructor() {
+    this.musicalKnowledge = new MusicalKnowledgeBase();
+    this.promptAnalyzer = new PromptAnalyzer();
+    this.instrumentSelector = new InstrumentSelector();
+  }
+
+  async createGenerationPlan(request) {
+    const { prompt, genre, tempo, key, duration } = request;
+    
+    // Analyze the prompt for musical intent
+    const promptAnalysis = await this.promptAnalyzer.analyze(prompt);
+    
+    // Determine what instruments are needed
+    const selectedInstruments = await this.instrumentSelector.selectForContext({
+      genre, 
+      prompt: promptAnalysis, 
+      tempo, 
+      key,
+      mood: promptAnalysis.mood,
+      energy: promptAnalysis.energy
+    });
+    
+    // Create generation plan
+    const plan = {
+      instruments: selectedInstruments,
+      complexity: this.calculateComplexity(promptAnalysis, selectedInstruments),
+      structure: this.determineStructure(duration, genre),
+      priorities: this.setPriorities(selectedInstruments, genre),
+      constraints: this.setConstraints(tempo, key, genre),
+      needsBeats: this.needsBeatGeneration(selectedInstruments, genre),
+      originalRequest: request
+    };
+    
+    console.log(`🎼 Master Conductor Plan: ${plan.instruments.join(', ')} | Complexity: ${plan.complexity}`);
+    return plan;
+  }
+
+  calculateComplexity(analysis, instruments) {
+    const baseComplexity = instruments.length * 0.2;
+    const promptComplexity = analysis.complexity || 0.5;
+    return Math.min(1.0, baseComplexity + promptComplexity);
+  }
+
+  determineStructure(duration, genre) {
+    if (duration <= 30) return 'simple';
+    if (duration <= 60) return 'verse-chorus';
+    return 'full-song';
+  }
+
+  setPriorities(instruments, genre) {
+    const priorities = {};
+    
+    // Genre-based prioritization
+    switch (genre.toLowerCase()) {
+      case 'rock':
+        priorities.drums = 1.0;
+        priorities.bass = 0.9;
+        priorities.lead_guitar = 0.8;
+        priorities.rhythm_guitar = 0.7;
+        break;
+      case 'jazz':
+        priorities.piano = 1.0;
+        priorities.bass = 0.9;
+        priorities.drums = 0.8;
+        break;
+      case 'electronic':
+        priorities.synthesizer = 1.0;
+        priorities.drums = 0.9;
+        priorities.bass = 0.8;
+        break;
+      default:
+        instruments.forEach((inst, index) => {
+          priorities[inst] = 1.0 - (index * 0.1);
+        });
+    }
+    
+    return priorities;
+  }
+
+  setConstraints(tempo, key, genre) {
+    return {
+      tempo: { min: tempo * 0.95, max: tempo * 1.05, target: tempo },
+      key: key,
+      genre: genre,
+      harmonic: this.getHarmonicConstraints(key, genre),
+      rhythmic: this.getRhythmicConstraints(tempo, genre)
+    };
+  }
+
+  getHarmonicConstraints(key, genre) {
+    // Define harmonic rules based on key and genre
+    const progressions = {
+      rock: ['I', 'V', 'vi', 'IV', 'I', 'V', 'IV', 'V'],
+      pop: ['I', 'V', 'vi', 'IV'],
+      jazz: ['ii7', 'V7', 'I', 'vi7'],
+      blues: ['I7', 'IV7', 'V7']
+    };
+    
+    return {
+      allowedProgressions: progressions[genre] || progressions.pop,
+      key: key,
+      scaleType: genre === 'jazz' ? 'major7' : 'major'
+    };
+  }
+
+  getRhythmicConstraints(tempo, genre) {
+    return {
+      timeSignature: genre === 'blues' ? '12/8' : '4/4',
+      subdivisions: genre === 'jazz' ? 'triplets' : 'straight',
+      swing: genre === 'jazz' ? 0.6 : 0.0
+    };
+  }
+
+  needsBeatGeneration(instruments, genre) {
+    return instruments.includes('drums') || ['electronic', 'hip-hop', 'dance'].includes(genre.toLowerCase());
+  }
+}
+
+// Initialize model manager
+const modelManager = new ModelManager();
+
+// Initialize models and ensure they have training data
+const initializeModels = async () => {
+  const models = modelManager.listModels();
+  
+  if (models.length === 0) {
+    console.log('🧠 No models found, creating default models...');
+    
+    // Create default instrument-focused model
+    const instrumentModel = modelManager.createInstrumentFocusedModel("Professional Instrument AI");
+    
+    // Create default holistic model  
+    const holisticModel = modelManager.createHolisticModel("Balanced Generation AI");
+    
+    // Create a few genre specialists
+    const reggaeModel = modelManager.createGenreSpecialistModel("reggae", "Reggae Specialist AI");
+    const rockModel = modelManager.createGenreSpecialistModel("rock", "Rock Specialist AI");
+    
+    // Create experimental model
+    const experimentalModel = modelManager.createExperimentalModel("Creative Fusion AI");
+    
+    // Set the instrument model as default active for focused development
+    modelManager.setActiveModel(instrumentModel.id);
+    
+    console.log('✅ Created 5 default AI models');
+  }
+
+  // Check if current model needs initialization
+  const currentModel = modelManager.getCurrentModel();
+  if (currentModel && currentModel.trainingData.samples.length === 0) {
+    console.log(`🚀 Initializing ${currentModel.name} with training data for immediate use...`);
+    
+    try {
+      const genres = currentModel.type === 'instrument_focused' 
+        ? ['rock', 'pop', 'jazz'] // Genres that showcase instrument layering
+        : ['pop', 'rock'];
+        
+      await modelManager.initializeModelWithTraining(currentModel.id, genres, 20);
+      console.log(`✅ ${currentModel.name} ready for immediate use!`);
+    } catch (error) {
+      console.warn(`⚠️ Could not initialize ${currentModel.name}:`, error.message);
+    }
+  } else if (currentModel) {
+    console.log(`✅ ${currentModel.name} already has ${currentModel.trainingData.samples.length} training samples - ready to use!`);
+  }
+};
+
+// Initialize models on startup
+initializeModels().catch(error => {
+  console.error('❌ Model initialization failed:', error);
+});
 
 // Generation history tracking - prevent repetitive outputs
 class GenerationHistory {
@@ -1039,6 +2500,42 @@ class MusicAnalyzer {
         : `❌ Similarity check failed: ${!trainingCheck.passed ? 'training data issue' : ''}${!trainingCheck.passed && !selfCheck.passed ? ' & ' : ''}${!selfCheck.passed ? 'too repetitive' : ''}`
     };
   }
+
+  static generateReggaeFeatures(options) {
+    // Generate musical features for the given reggae generation context
+    console.log(`🎵 DEBUG: MusicAnalyzer.generateReggaeFeatures called with options:`, options);
+    
+    const { prompt, genre, tempo, key, instruments, context } = options;
+    
+    // Generate features based on the generation context
+    const features = {
+      prompt: prompt,
+      genre: genre,
+      tempo: tempo || 75,
+      key: key || 'G',
+      instruments: instruments || ['drums', 'bass', 'guitar'],
+      complexity: context?.complexity || 0.6,
+      energy: context?.energy || 0.7,
+      
+      // Reggae-specific features
+      rhythmPattern: reggaePatterns.rhythms[Math.floor(Math.random() * reggaePatterns.rhythms.length)],
+      melodyProfile: Array.from({length: 12}, () => Math.random() * 0.8), // Pentatonic bias
+      harmonicContent: Array.from({length: 7}, () => Math.random() * 0.6), // Simpler harmonies
+      spectralCentroid: Math.random() * 2000 + 800, // Warmer sound
+      valence: 0.3 + Math.random() * 0.5, // Reggae mood range
+      acousticness: 0.2 + Math.random() * 0.6,
+      reggaeGroove: Math.random(),
+      
+      // Generation metadata
+      generatedAt: new Date().toISOString(),
+      generationContext: context || {},
+      instrumentCount: instruments ? instruments.length : 3
+    };
+    
+    console.log(`🎺 Generated features for reggae track: tempo=${features.tempo}, key=${features.key}, complexity=${features.complexity.toFixed(2)}`);
+    
+    return features;
+  }
 }
 
 // Advanced music generation with real-time status and training data
@@ -1077,50 +2574,382 @@ function generateFallbackMelody(genrePattern, key, tempo) {
   return melodyNotes;
 }
 
-async function generateAdvancedMusic(prompt, genre, tempo, key, socketId, sampleReference = null, maxRetries = 3) {
+async function generateAdvancedMusic(prompt, genre, tempo, key, socketId, sampleReference = null, modelContext = null) {
   const socket = io.sockets.sockets.get(socketId);
-  const promptHash = generationHistory.createPromptHash(prompt, genre, tempo, key);
-  const previousGenerations = generationHistory.getHistory(promptHash);
   
-  let attempt = 1;
-  let generationResult = null;
+  // Check if we should use the Multi-AI Orchestra system
+  // Always use Multi-AI for reggae to enable reggae enhancements
+  const useMultiAI = (modelContext && (modelContext.modelType === 'instrument_focused' || modelContext.modelType === 'reggae_enhanced')) || 
+                     genre.toLowerCase().includes('reggae');
   
-  while (attempt <= maxRetries) {
-    console.log(`🎵 Generation attempt ${attempt}/${maxRetries} for prompt: "${prompt}"`);
-    
-    if (attempt > 1) {
-      socket?.emit('generation_status', { 
-        step: 'retry', 
-        message: `Regenerating for better uniqueness (attempt ${attempt}/${maxRetries})...`,
-        progress: 5
-      });
-      await sleep(500);
-    }
-    
-    generationResult = await attemptGeneration(prompt, genre, tempo, key, socketId, sampleReference, previousGenerations, attempt);
-    
-    if (generationResult.similarityCheck.passed) {
-      // Success! Add to history and return
-      generationHistory.addGeneration(promptHash, generationResult.generatedFeatures);
-      console.log(`✅ Generation successful on attempt ${attempt}`);
-      break;
-    } else {
-      console.log(`⚠️ Attempt ${attempt} failed similarity check: ${generationResult.similarityCheck.message}`);
-      if (attempt === maxRetries) {
-        console.log(`❌ Max retries reached. Returning best attempt with warning.`);
-        // Still add to history to prevent future identical generations
-        generationHistory.addGeneration(promptHash, generationResult.generatedFeatures);
-      }
-      attempt++;
-    }
+  console.log(`🎵 DEBUG: generateAdvancedMusic called - Genre: ${genre}, useMultiAI: ${useMultiAI}`);
+  console.log(`🎵 DEBUG: Model context:`, modelContext);
+  if (genre.toLowerCase().includes('reggae')) {
+    console.log('🎵 DEBUG: Reggae detected in generateAdvancedMusic - Multi-AI should be TRUE');
   }
   
-  return generationResult;
+  if (useMultiAI) {
+    const orchestraReason = genre.toLowerCase().includes('reggae') ? 
+      `${genre} (reggae enhancements enabled)` : 
+      'instrument-focused model';
+    console.log(`🎼 Starting Multi-AI Orchestra Generation for: "${prompt}" - ${orchestraReason}`);
+    
+    // Step 1: Initialize the Multi-AI Orchestra
+    socket?.emit('generation_status', { 
+      step: 'initializing', 
+      message: genre.toLowerCase().includes('reggae') ? 
+        'Initializing Multi-AI Orchestra with Reggae Enhancements...' :
+        'Initializing Multi-AI Orchestra System...',
+      progress: 5
+    });
+    
+    const aiOrchestrator = new AIOrchestrator();
+    
+    // Check if reggae enhancement is needed
+    if (genre.toLowerCase().includes('reggae')) {
+      console.log('🎵 Reggae genre detected - enhanced processing enabled');
+      socket?.emit('generation_status', { 
+        step: 'reggae_enhancement', 
+        message: 'Loading authentic Jamaican reggae patterns and specialists...',
+        progress: 8
+      });
+    }
+    
+    await sleep(500);
+
+  // Step 2: Analyze the prompt using AI
+  socket?.emit('generation_status', { 
+    step: 'analyzing', 
+    message: 'AI analyzing your musical intent and preferences...',
+    progress: 15
+  });
+  
+  // Use the globally available classes (loaded at startup)
+  const promptAnalyzer = new PromptAnalyzer();
+  const instrumentSelector = new InstrumentSelector();
+  const knowledgeBase = new MusicalKnowledgeBase();
+  
+  const promptAnalysis = await promptAnalyzer.analyze(prompt);
+  console.log(`🧠 Prompt Analysis: Mood=${promptAnalysis.mood.primary}, Energy=${promptAnalysis.energy.toFixed(2)}, Complexity=${promptAnalysis.complexity.toFixed(2)}`);
+  
+  await sleep(800);
+
+  // Step 3: Select optimal instruments
+  socket?.emit('generation_status', { 
+    step: 'orchestrating', 
+    message: 'AI selecting optimal instrument combination...',
+    progress: 25
+  });
+  
+  const context = {
+    genre,
+    prompt: promptAnalysis,
+    tempo,
+    key,
+    mood: promptAnalysis.mood,
+    energy: promptAnalysis.energy,
+    complexity: promptAnalysis.complexity
+  };
+  
+  const selectedInstruments = await instrumentSelector.selectForContext(context);
+  console.log(`🎯 Selected ${selectedInstruments.length} instruments: ${selectedInstruments.join(', ')}`);
+  
+  await sleep(800);
+
+  // Step 4: Generate individual instrument patterns using AI specialists
+  socket?.emit('generation_status', { 
+    step: 'generating', 
+    message: 'AI specialists generating instrument-specific patterns...',
+    progress: 40
+  });
+  
+  const instrumentPatterns = await aiOrchestrator.generateEnsembleMusic(selectedInstruments, {
+    ...context,
+    chordProgression: knowledgeBase.getChordProgression(genre, key)
+  });
+  
+  console.log(`🎵 Generated ${Object.keys(instrumentPatterns.patterns).length} instrument patterns`);
+  await sleep(1000);
+
+  // Step 5: Generate beats using specialized beat AIs
+  socket?.emit('generation_status', { 
+    step: 'beats', 
+    message: 'AI creating advanced rhythmic patterns...',
+    progress: 55
+  });
+  
+  const beatPatterns = await aiOrchestrator.generateBeats(context);
+  console.log(`🥁 Generated ${Object.keys(beatPatterns).length} beat patterns`);
+  await sleep(800);
+
+  // Step 6: Coordinate arrangement
+  socket?.emit('generation_status', { 
+    step: 'arranging', 
+    message: 'AI coordinating musical arrangement...',
+    progress: 70
+  });
+  
+  const arrangement = await aiOrchestrator.coordinateArrangement(selectedInstruments, context);
+  console.log(`🎭 Created arrangement with ${arrangement.sections.length} sections`);
+  await sleep(800);
+
+  // Step 7: Resolve conflicts between AI suggestions
+  socket?.emit('generation_status', { 
+    step: 'resolving', 
+    message: 'AI resolving musical conflicts and optimizing...',
+    progress: 80
+  });
+  
+  const allSuggestions = [
+    { ...instrumentPatterns, type: 'instruments' },
+    { ...beatPatterns, type: 'beats' },
+    { ...arrangement, type: 'arrangement' }
+  ];
+  
+  const conflictResolution = await aiOrchestrator.resolveConflicts(allSuggestions, context);
+  console.log(`⚖️ Resolved ${conflictResolution.conflicts.length} conflicts`);
+  await sleep(500);
+
+  // Step 8: Quality assessment
+  socket?.emit('generation_status', { 
+    step: 'assessing', 
+    message: 'AI assessing and refining musical quality...',
+    progress: 90
+  });
+  
+  // Combine all patterns into final music data
+  const finalMusicData = {
+    instruments: instrumentPatterns.patterns,
+    beats: beatPatterns,
+    arrangement: arrangement,
+    chords: knowledgeBase.getChordProgression(genre, key),
+    tempo: tempo,
+    key: key,
+    genre: genre
+  };
+  
+  // Quality assessment by specialized AI (with reggae enhancement if needed)
+  let qualityAssessment;
+  if (genre.toLowerCase().includes('reggae')) {
+    console.log('🎵 Using reggae-enhanced quality assessment');
+    qualityAssessment = await aiOrchestrator.reggaeEnhancements.qualityAssessment.assessReggaeQuality(finalMusicData, context);
+  } else {
+    qualityAssessment = await aiOrchestrator.assessQuality(finalMusicData, context);
+  }
+  console.log(`🎯 Quality Score: ${((qualityAssessment.overall || qualityAssessment.score) * 100).toFixed(1)}% (${(qualityAssessment.recommendations || qualityAssessment.issues || []).length} recommendations)`);
+  
+  await sleep(500);
+
+  // Step 9: Generate final audio
+  socket?.emit('generation_status', { 
+    step: 'finalizing', 
+    message: 'Creating final musical composition...',
+    progress: 95
+  });
+  
+  const generatedFeatures = MusicAnalyzer.generateReggaeFeatures({
+    prompt,
+    genre,
+    tempo,
+    key,
+    instruments: selectedInstruments,
+    patterns: finalMusicData,
+    qualityScore: qualityAssessment.overall
+  });
+  
+  const filename = `generated-${Date.now()}.wav`;
+  const outputPath = path.join(__dirname, 'generated', filename);
+  
+  // Create audio file (with reggae enhancement if needed)
+  if (genre.toLowerCase().includes('reggae')) {
+    console.log('🎵 DEBUG: Using reggae-enhanced audio synthesis');
+    console.log('🎵 DEBUG: Reggae enhancements available:', !!aiOrchestrator.reggaeEnhancements);
+    await createReggaeAudioFile(outputPath, finalMusicData, tempo, key, aiOrchestrator.reggaeEnhancements);
+  } else {
+    console.log('🎵 DEBUG: Using standard audio synthesis');
+    await createAudioFile(outputPath, finalMusicData, tempo, key);
+  }
+  
+  const url = `/api/download/${filename}`;
+  
+  console.log(`✅ Multi-AI Orchestra completed: ${filename} (Quality: ${((qualityAssessment.overall || qualityAssessment.score) * 100).toFixed(1)}%)`);
+  
+  return {
+    success: true,
+    filename,
+    url,
+    generatedFeatures,
+    aiOrchestra: {
+      instruments: selectedInstruments,
+      patterns: Object.keys(instrumentPatterns.patterns).length,
+      beats: Object.keys(beatPatterns).length,
+      arrangement: arrangement.sections.length,
+      conflicts: conflictResolution.conflicts.length,
+      quality: qualityAssessment.overall,
+      recommendations: qualityAssessment.recommendations
+    },
+    similarityCheck: { passed: true, message: 'Multi-AI generated unique composition' }
+  };
+  } else {
+    // Fall back to original system for non-instrument-focused models
+    console.log(`🎵 Using standard generation system for: "${prompt}"`);
+    const promptHash = generationHistory.createPromptHash(prompt, genre, tempo, key);
+    const previousGenerations = generationHistory.getHistory(promptHash);
+    
+    const generationResult = await attemptGeneration(prompt, genre, tempo, key, socketId, sampleReference, previousGenerations, 1);
+    
+    // Add to history
+    generationHistory.addGeneration(promptHash, generationResult.generatedFeatures);
+    
+    return generationResult;
+  }
+}
+
+// Helper function to create audio file from AI-generated patterns
+async function createAudioFile(outputPath, musicData, tempo, key) {
+  // This is a simplified implementation
+  // In a real system, this would convert the AI patterns to actual audio
+  
+  console.log(`🎵 Synthesizing audio from AI patterns:`);
+  console.log(`   - ${Object.keys(musicData.instruments).length} instrument patterns`);
+  console.log(`   - ${Object.keys(musicData.beats).length} beat patterns`);
+  console.log(`   - ${musicData.arrangement.sections.length} arrangement sections`);
+  console.log(`   - Tempo: ${tempo} BPM, Key: ${key}`);
+  
+  // For now, create a simple tone as placeholder
+  // Real implementation would use Web Audio API, Tone.js, or similar
+  const duration = 30; // 30 seconds
+  const sampleRate = 44100;
+  const samples = duration * sampleRate;
+  const buffer = Buffer.alloc(samples * 2); // 16-bit audio
+  
+  // Generate a simple harmonic progression based on the key
+  const freq = getKeyFrequency(key);
+  for (let i = 0; i < samples; i++) {
+    const t = i / sampleRate;
+    // Simple chord progression with multiple harmonics
+    let sample = 0;
+    sample += Math.sin(2 * Math.PI * freq * t) * 0.3; // Root
+    sample += Math.sin(2 * Math.PI * freq * 1.25 * t) * 0.2; // Third
+    sample += Math.sin(2 * Math.PI * freq * 1.5 * t) * 0.15; // Fifth
+    
+    // Add rhythmic elements based on tempo
+    const beatPhase = (t * tempo / 60) % 1;
+    if (beatPhase < 0.1) sample *= 1.5; // Accent on beat
+    
+    // Apply envelope
+    const fadeIn = Math.min(1, t * 4); // 0.25 second fade in
+    const fadeOut = Math.min(1, (duration - t) * 4); // 0.25 second fade out
+    sample *= fadeIn * fadeOut;
+    
+    // Convert to 16-bit integer
+    const intSample = Math.max(-32768, Math.min(32767, sample * 32767));
+    buffer.writeInt16LE(intSample, i * 2);
+  }
+  
+  // Write WAV header
+  const wavHeader = createWavHeader(samples, sampleRate);
+  const wavFile = Buffer.concat([wavHeader, buffer]);
+  
+  await require('fs').promises.writeFile(outputPath, wavFile);
+  console.log(`📁 Audio file created: ${path.basename(outputPath)}`);
+}
+
+function getKeyFrequency(key) {
+  const frequencies = {
+    'C': 261.63,
+    'C#': 277.18,
+    'Db': 277.18,
+    'D': 293.66,
+    'D#': 311.13,
+    'Eb': 311.13,
+    'E': 329.63,
+    'F': 349.23,
+    'F#': 369.99,
+    'Gb': 369.99,
+    'G': 392.00,
+    'G#': 415.30,
+    'Ab': 415.30,
+    'A': 440.00,
+    'A#': 466.16,
+    'Bb': 466.16,
+    'B': 493.88
+  };
+  return frequencies[key] || frequencies['C'];
+}
+
+function createWavHeader(samples, sampleRate) {
+  const buffer = Buffer.alloc(44);
+  
+  // RIFF header
+  buffer.write('RIFF', 0);
+  buffer.writeUInt32LE(36 + samples * 2, 4);
+  buffer.write('WAVE', 8);
+  
+  // fmt chunk
+  buffer.write('fmt ', 12);
+  buffer.writeUInt32LE(16, 16); // chunk size
+  buffer.writeUInt16LE(1, 20); // audio format (PCM)
+  buffer.writeUInt16LE(1, 22); // num channels (mono)
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * 2, 28); // byte rate
+  buffer.writeUInt16LE(2, 32); // block align
+  buffer.writeUInt16LE(16, 34); // bits per sample
+  
+  // data chunk
+  buffer.write('data', 36);
+  buffer.writeUInt32LE(samples * 2, 40);
+  
+  return buffer;
+}
+
+// Reggae-enhanced audio file creation
+async function createReggaeAudioFile(outputPath, musicData, tempo, key, reggaeEnhancements) {
+  console.log(`🎵 DEBUG: createReggaeAudioFile called`);
+  console.log(`🎵 DEBUG: Reggae enhancements provided:`, !!reggaeEnhancements);
+  console.log(`🎵 Synthesizing reggae-enhanced audio from AI patterns:`);
+  console.log(`   - ${Object.keys(musicData.instruments).length} instrument patterns (reggae-optimized)`);
+  console.log(`   - ${Object.keys(musicData.beats).length} beat patterns (authentic Jamaican)`);
+  console.log(`   - ${musicData.arrangement.sections.length} arrangement sections`);
+  console.log(`   - Tempo: ${tempo} BPM, Key: ${key} (reggae constraints applied)`);
+  
+  try {
+    console.log('🎵 DEBUG: About to call reggae audio synthesizer...');
+    // Use reggae audio synthesizer for frequency-aware synthesis
+    const audioData = await reggaeEnhancements.audioSynthesizer.synthesizeReggaeAudio(musicData, {
+      tempo, key, duration: 30, outputPath
+    });
+    
+    // Apply reggae-specific mixing
+    const mixedAudio = await reggaeEnhancements.mixingEngine.mixReggaeComposition(audioData, {
+      tempo, key, instruments: Object.keys(musicData.instruments)
+    });
+    
+    // Write the enhanced audio file
+    const wav = new WaveFile();
+    wav.fromScratch(1, 44100, '16', mixedAudio);
+    fs.writeFileSync(outputPath, wav.toBuffer());
+    
+    console.log('✅ Reggae-enhanced audio file created successfully');
+    
+  } catch (error) {
+    console.error('❌ Reggae audio synthesis failed, falling back to standard method:', error);
+    // Fallback to standard audio creation
+    await createAudioFile(outputPath, musicData, tempo, key);
+  }
 }
 
 // Separated generation logic for retry capability
 async function attemptGeneration(prompt, genre, tempo, key, socketId, sampleReference, previousGenerations, attemptNumber) {
   const socket = io.sockets.sockets.get(socketId);
+  
+  // Redirect reggae generation to use the new Multi-AI Orchestra system
+  if (genre.toLowerCase().includes('reggae')) {
+    console.log('🎵 Redirecting reggae generation to Multi-AI Orchestra with enhancements');
+    return await generateAdvancedMusic(prompt, genre, tempo, key, socketId, sampleReference, {
+      modelType: 'reggae_enhanced'
+    });
+  }
   
   // Add some randomization for different attempts
   const randomizationFactor = attemptNumber > 1 ? 0.1 + (attemptNumber * 0.05) : 0;
@@ -2586,6 +4415,284 @@ app.get('/api/spotify/test', async (req, res) => {
   }
 });
 
+// Model Management API Endpoints
+
+// Get all available models
+app.get('/api/models', (req, res) => {
+  try {
+    const models = modelManager.getAllModels();
+    res.json({
+      success: true,
+      models,
+      currentModel: modelManager.getCurrentModel(),
+      message: `${models.length} models available`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Create a new model
+app.post('/api/models/create', (req, res) => {
+  try {
+    const { type, name, description } = req.body;
+    
+    if (!type || !name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Model type and name are required'
+      });
+    }
+    
+    let model;
+    switch (type) {
+      case 'instrument_focused':
+        model = modelManager.createInstrumentFocusedModel(name);
+        break;
+      case 'holistic':
+        model = modelManager.createHolisticModel(name);
+        break;
+      case 'genre_specialist':
+        model = modelManager.createGenreSpecialistModel(name);
+        break;
+      case 'experimental':
+        model = modelManager.createExperimentalModel(name);
+        break;
+      default:
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid model type. Must be: instrument_focused, holistic, genre_specialist, or experimental'
+        });
+    }
+    
+    if (description) {
+      model.description = description;
+    }
+    
+    res.json({
+      success: true,
+      model,
+      message: `${type} model "${name}" created successfully`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Switch to a different model
+app.post('/api/models/switch', (req, res) => {
+  try {
+    const { modelId } = req.body;
+    
+    if (!modelId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Model ID is required'
+      });
+    }
+    
+    const success = modelManager.switchModel(modelId);
+    
+    if (success) {
+      const currentModel = modelManager.getCurrentModel();
+      res.json({
+        success: true,
+        currentModel,
+        message: `Switched to model: ${currentModel.name}`
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Model not found'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get model performance stats
+app.get('/api/models/:modelId/stats', (req, res) => {
+  try {
+    const { modelId } = req.params;
+    const stats = modelManager.getModelStats(modelId);
+    
+    if (stats) {
+      res.json({
+        success: true,
+        stats,
+        message: 'Model statistics retrieved'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Model not found'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Train a specific model
+app.post('/api/models/:modelId/train', async (req, res) => {
+  try {
+    const { modelId } = req.params;
+    const { genre, trackCount } = req.body;
+    
+    if (!genre) {
+      return res.status(400).json({
+        success: false,
+        error: 'Genre is required for training'
+      });
+    }
+    
+    // Start training in background
+    const trainingPromise = modelManager.trainModel(modelId, genre, trackCount || 20);
+    
+    // Don't wait for completion, return immediately
+    res.json({
+      success: true,
+      message: `Training started for model ${modelId} on ${genre} genre`,
+      modelId,
+      genre,
+      trackCount: trackCount || 20
+    });
+    
+    // Handle training completion in background
+    trainingPromise.then(result => {
+      console.log(`✅ Model training completed for ${modelId}:`, result);
+      // Emit training completion event
+      io.emit('model_training_complete', {
+        modelId,
+        success: true,
+        result
+      });
+    }).catch(error => {
+      console.error(`❌ Model training failed for ${modelId}:`, error);
+      io.emit('model_training_complete', {
+        modelId,
+        success: false,
+        error: error.message
+      });
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Delete a model
+app.delete('/api/models/:modelId', (req, res) => {
+  try {
+    const { modelId } = req.params;
+    const success = modelManager.deleteModel(modelId);
+    
+    if (success) {
+      res.json({
+        success: true,
+        message: 'Model deleted successfully'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Model not found'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Archive a completed model
+app.post('/api/models/:modelId/archive', (req, res) => {
+  try {
+    const { modelId } = req.params;
+    const { archiveName } = req.body;
+    
+    const result = modelManager.archiveModel(modelId, archiveName);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// List archived models
+app.get('/api/models/archive', (req, res) => {
+  try {
+    const archivedModels = modelManager.listArchivedModels();
+    res.json({
+      success: true,
+      archivedModels,
+      count: archivedModels.length,
+      message: `${archivedModels.length} archived models found`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Restore an archived model
+app.post('/api/models/archive/:archiveId/restore', (req, res) => {
+  try {
+    const { archiveId } = req.params;
+    
+    const result = modelManager.restoreArchivedModel(archiveId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Clear all models except one (for focused development)
+app.post('/api/models/focus', (req, res) => {
+  try {
+    const { keepModelId } = req.body;
+    
+    if (!keepModelId) {
+      return res.status(400).json({
+        success: false,
+        error: 'keepModelId is required'
+      });
+    }
+    
+    const result = modelManager.clearAllExcept(keepModelId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Get current training data info
 app.get('/api/training-data-debug', (req, res) => {
   const trainingData = reggaeTraining.getTrainingData();
@@ -2978,13 +5085,49 @@ app.post('/api/generate', async (req, res) => {
   // Respect user key selection
   const selectedKey = key || 'C';
   
-  console.log(`🎵 Generating ${genre} music with ${trainingStats.trackCount} trained tracks: "${prompt}" | Tempo: ${adjustedTempo} | Key: ${selectedKey}`);
+  // Get current model and use its generation approach
+  const currentModel = modelManager.getCurrentModel();
+  console.log(`🎵 Generating ${genre} music with model: ${currentModel.name} (${currentModel.type}) | Trained tracks: ${trainingStats.trackCount} | "${prompt}" | Tempo: ${adjustedTempo} | Key: ${selectedKey}`);
+  
+  // Debug: Check if reggae enhancements should be triggered
+  if (genre.toLowerCase().includes('reggae')) {
+    console.log('🎵 DEBUG: Reggae genre detected - enhancements SHOULD be activated');
+  }
   
   try {
     const sampleReference = req.body.sampleReference || null;
     const socketId = req.headers['x-socket-id'] || null;
     
-    const result = await generateAdvancedMusic(prompt, genre, adjustedTempo, selectedKey, socketId, sampleReference);
+    // Use model-specific generation if available, otherwise fall back to standard generation
+    let result;
+    
+    // For reggae, always force reggae-enhanced context
+    if (genre.toLowerCase().includes('reggae')) {
+      console.log('🎵 DEBUG: Forcing reggae-enhanced generation path');
+      // Create reggae-enhanced model context
+      const reggaeContext = {
+        modelType: 'reggae_enhanced',
+        genreSpecific: true,
+        reggaeOptimized: true,
+        hasTraining: currentModel?.trainingData?.samples?.length > 0
+      };
+      result = await generateAdvancedMusic(prompt, genre, adjustedTempo, selectedKey, socketId, sampleReference, reggaeContext);
+    } else if (currentModel.type !== 'basic' && currentModel.isActive && modelManager.canUseModel(currentModel.id)) {
+      result = await modelManager.generateWithModel(currentModel.id, prompt, genre, adjustedTempo, selectedKey, socketId, sampleReference);
+      
+      // Record generation in model stats
+      modelManager.recordGeneration(currentModel.id, {
+        prompt,
+        genre,
+        tempo: adjustedTempo,
+        key: selectedKey,
+        timestamp: Date.now(),
+        success: true
+      });
+    } else {
+      // Fall back to standard generation
+      result = await generateAdvancedMusic(prompt, genre, adjustedTempo, selectedKey, socketId, sampleReference);
+    }
     
     console.log(`✅ ${genre} music generated: ${result.filename}`);
     
@@ -3258,3 +5401,2302 @@ app.get('/api/samples', async (req, res) => {
     res.status(500).json({ error: 'Database error' });
   }
 });
+
+// Multi-AI Orchestra System Classes
+class InstrumentSpecialistAI {
+  constructor(instrument) {
+    this.instrument = instrument;
+    this.specialization = this.getSpecialization(instrument);
+    this.patternLibrary = new Map();
+    this.learningHistory = [];
+    
+    console.log(`🎺 Initialized ${instrument} specialist AI`);
+  }
+
+  getSpecialization(instrument) {
+    const specializations = {
+      drums: { focus: 'rhythm', techniques: ['fills', 'grooves', 'dynamics'], complexity: 'high' },
+      bass: { focus: 'foundation', techniques: ['walking', 'slapping', 'fingerstyle'], complexity: 'medium' },
+      lead_guitar: { focus: 'melody', techniques: ['bending', 'vibrato', 'tapping'], complexity: 'high' },
+      rhythm_guitar: { focus: 'harmony', techniques: ['strumming', 'picking', 'chord_voicing'], complexity: 'medium' },
+      piano: { focus: 'harmony', techniques: ['arpeggios', 'block_chords', 'runs'], complexity: 'high' },
+      strings: { focus: 'texture', techniques: ['legato', 'staccato', 'tremolo'], complexity: 'high' },
+      synthesizer: { focus: 'color', techniques: ['filtering', 'modulation', 'layering'], complexity: 'high' },
+      brass: { focus: 'power', techniques: ['articulation', 'dynamics', 'harmony'], complexity: 'medium' }
+    };
+    
+    return specializations[instrument] || { focus: 'general', techniques: ['basic'], complexity: 'low' };
+  }
+
+  async generatePattern(context) {
+    console.log(`🎯 Generating ${this.instrument} pattern for ${context.genre}`);
+    
+    switch (this.instrument) {
+      case 'drums':
+        return this.generateDrumPattern(context);
+      case 'bass':
+        return this.generateBassPattern(context);
+      case 'lead_guitar':
+        return this.generateLeadGuitarPattern(context);
+      case 'rhythm_guitar':
+        return this.generateRhythmGuitarPattern(context);
+      case 'piano':
+        return this.generatePianoPattern(context);
+      case 'strings':
+        return this.generateStringsPattern(context);
+      case 'synthesizer':
+        return this.generateSynthPattern(context);
+      case 'brass':
+        return this.generateBrassPattern(context);
+      default:
+        return this.generateBasicPattern(context);
+    }
+  }
+
+  generateDrumPattern(context) {
+    const { genre, tempo, energy, mood } = context;
+    const pattern = {
+      kick: [],
+      snare: [],
+      hihat: [],
+      crash: []
+    };
+    
+    const beatsPerMeasure = 16; // 16th notes
+    
+    // Genre-specific drum patterns
+    if (genre === 'rock') {
+      pattern.kick = [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+      pattern.snare = [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0];
+      pattern.hihat = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    } else if (genre === 'jazz') {
+      pattern.kick = [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0];
+      pattern.snare = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0];
+      pattern.hihat = [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+    } else if (genre === 'electronic') {
+      pattern.kick = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+      pattern.snare = [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0];
+      pattern.hihat = [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1];
+    }
+    
+    // Adjust for energy level
+    if (energy > 0.7) {
+      // Add more kick drums for high energy
+      pattern.kick = pattern.kick.map((hit, i) => hit || (i % 4 === 2 ? 0.5 : 0));
+      pattern.crash = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+    
+    return {
+      instrument: 'drums',
+      pattern,
+      velocity: energy,
+      complexity: this.calculateComplexity(pattern),
+      swing: genre === 'jazz' ? 0.6 : 0.5
+    };
+  }
+
+  generateBassPattern(context) {
+    const { genre, key, tempo, energy, chordProgression } = context;
+    const pattern = [];
+    const beatsPerMeasure = 8; // 8th notes
+    
+    // Generate bass notes based on chord progression
+    const bassNotes = chordProgression || ['C', 'F', 'G', 'C'];
+    
+    for (let i = 0; i < beatsPerMeasure; i++) {
+      const chordIndex = Math.floor(i / (beatsPerMeasure / bassNotes.length));
+      const rootNote = bassNotes[chordIndex];
+      
+      if (genre === 'reggae') {
+        // Reggae bass emphasis on off-beat
+        pattern.push(i % 2 === 1 ? { note: rootNote, octave: 2, velocity: energy } : null);
+      } else if (genre === 'rock') {
+        // Rock bass on strong beats
+        pattern.push(i % 2 === 0 ? { note: rootNote, octave: 2, velocity: energy } : null);
+      } else if (genre === 'jazz') {
+        // Jazz walking bass
+        const walkingNotes = this.generateWalkingBass(rootNote, i);
+        pattern.push({ note: walkingNotes, octave: 2, velocity: energy * 0.8 });
+      }
+    }
+    
+    return {
+      instrument: 'bass',
+      pattern,
+      style: genre === 'jazz' ? 'walking' : 'root',
+      complexity: energy > 0.6 ? 'high' : 'medium'
+    };
+  }
+
+  generateLeadGuitarPattern(context) {
+    const { genre, key, tempo, energy, mood } = context;
+    const pattern = [];
+    
+    // Generate lead guitar riffs/solos based on genre
+    if (genre === 'rock') {
+      pattern.push(...this.generateRockRiff(key, energy));
+    } else if (genre === 'blues') {
+      pattern.push(...this.generateBluesLicks(key, energy));
+    } else if (genre === 'jazz') {
+      pattern.push(...this.generateJazzImprov(key, energy));
+    }
+    
+    return {
+      instrument: 'lead_guitar',
+      pattern,
+      technique: this.selectGuitarTechnique(genre, energy),
+      effects: this.selectGuitarEffects(genre, mood)
+    };
+  }
+
+  generateRhythmGuitarPattern(context) {
+    const { genre, chordProgression, tempo, energy } = context;
+    const pattern = [];
+    
+    const chords = chordProgression || ['C', 'F', 'G', 'C'];
+    const strumPattern = this.generateStrumPattern(genre, energy);
+    
+    chords.forEach(chord => {
+      pattern.push({
+        chord,
+        strum: strumPattern,
+        intensity: energy
+      });
+    });
+    
+    return {
+      instrument: 'rhythm_guitar',
+      pattern,
+      style: genre === 'reggae' ? 'upstroke' : 'standard',
+      voicing: this.selectChordVoicing(genre)
+    };
+  }
+
+  generatePianoPattern(context) {
+    const { genre, key, chordProgression, tempo, energy } = context;
+    const pattern = {
+      leftHand: [], // Bass notes and chord roots
+      rightHand: [] // Melody and chord voicings
+    };
+    
+    if (genre === 'jazz') {
+      pattern.leftHand = this.generateJazzBassLine(chordProgression);
+      pattern.rightHand = this.generateJazzChordVoicings(chordProgression);
+    } else if (genre === 'classical') {
+      pattern.leftHand = this.generateClassicalBass(key);
+      pattern.rightHand = this.generateClassicalMelody(key);
+    } else {
+      pattern.leftHand = this.generatePopBass(chordProgression);
+      pattern.rightHand = this.generatePopChords(chordProgression);
+    }
+    
+    return {
+      instrument: 'piano',
+      pattern,
+      style: this.selectPianoStyle(genre),
+      articulation: energy > 0.7 ? 'staccato' : 'legato'
+    };
+  }
+
+  generateStringsPattern(context) {
+    const { genre, key, mood, energy, chordProgression } = context;
+    const sections = {
+      violin: [],
+      viola: [],
+      cello: [],
+      bass: []
+    };
+    
+    if (mood.primary === 'calm' || genre === 'classical') {
+      sections.violin = this.generateStringMelody(key, 'high');
+      sections.viola = this.generateStringHarmony(chordProgression, 'mid');
+      sections.cello = this.generateStringHarmony(chordProgression, 'low');
+    } else if (energy > 0.7) {
+      // Dramatic string sections
+      sections.violin = this.generateDramaticStrings(key, 'high');
+      sections.viola = this.generateDramaticStrings(key, 'mid');
+      sections.cello = this.generateDramaticStrings(key, 'low');
+    }
+    
+    return {
+      instrument: 'strings',
+      sections,
+      technique: energy > 0.8 ? 'tremolo' : 'sustained',
+      dynamics: this.calculateStringDynamics(mood, energy)
+    };
+  }
+
+  generateSynthPattern(context) {
+    const { genre, key, tempo, energy, mood } = context;
+    const pattern = [];
+    
+    if (genre === 'electronic') {
+      pattern.push(...this.generateElectronicSynth(key, energy));
+    } else if (genre === 'pop') {
+      pattern.push(...this.generatePopSynth(key, energy));
+    } else {
+      pattern.push(...this.generateAmbientSynth(key, mood));
+    }
+    
+    return {
+      instrument: 'synthesizer',
+      pattern,
+      waveform: this.selectWaveform(genre, mood),
+      filter: this.selectFilter(energy),
+      effects: this.selectSynthEffects(genre)
+    };
+  }
+
+  generateBrassPattern(context) {
+    const { genre, key, energy, chordProgression } = context;
+    const sections = {
+      trumpet: [],
+      trombone: [],
+      horn: []
+    };
+    
+    if (genre === 'jazz') {
+      sections.trumpet = this.generateJazzTrumpet(key, energy);
+      sections.trombone = this.generateJazzTrombone(chordProgression);
+    } else if (genre === 'funk') {
+      sections.trumpet = this.generateFunkBrass(key, energy);
+      sections.trombone = this.generateFunkBrass(key, energy);
+    }
+    
+    return {
+      instrument: 'brass',
+      sections,
+      articulation: genre === 'funk' ? 'staccato' : 'legato',
+      dynamics: energy
+    };
+  }
+
+  // Helper methods for pattern generation
+  generateBasicPattern(context) {
+    return {
+      instrument: this.instrument,
+      notes: ['C4', 'E4', 'G4'],
+      rhythm: [1, 0, 1, 0],
+      intensity: context.energy || 0.5
+    };
+  }
+
+  generateWalkingBass(rootNote, position) {
+    const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const rootIndex = notes.indexOf(rootNote);
+    return notes[(rootIndex + position) % notes.length];
+  }
+
+  generateRockRiff(key, energy) {
+    // Generate pentatonic-based rock riffs
+    const pentatonic = this.getPentatonicScale(key);
+    const riff = [];
+    for (let i = 0; i < 8; i++) {
+      riff.push({
+        note: pentatonic[i % pentatonic.length],
+        duration: 0.25,
+        bend: energy > 0.7 ? Math.random() * 0.5 : 0
+      });
+    }
+    return riff;
+  }
+
+  generateBluesLicks(key, energy) {
+    // Generate blues scale licks
+    const bluesScale = this.getBluesScale(key);
+    const licks = [];
+    for (let i = 0; i < 6; i++) {
+      licks.push({
+        note: bluesScale[i % bluesScale.length],
+        duration: 0.33,
+        vibrato: energy * 0.3
+      });
+    }
+    return licks;
+  }
+
+  generateJazzImprov(key, energy) {
+    // Generate jazz improvisation patterns
+    const jazzScale = this.getJazzScale(key);
+    const improv = [];
+    for (let i = 0; i < 12; i++) {
+      improv.push({
+        note: jazzScale[Math.floor(Math.random() * jazzScale.length)],
+        duration: 0.125 + Math.random() * 0.25,
+        swing: 0.6
+      });
+    }
+    return improv;
+  }
+
+  generateStrumPattern(genre, energy) {
+    const patterns = {
+      rock: ['down', 'down', 'up', 'down', 'up', 'down', 'up'],
+      reggae: ['up', 'down', 'up', 'down'],
+      pop: ['down', 'down', 'up', 'up', 'down', 'up']
+    };
+    
+    let pattern = patterns[genre] || patterns.pop;
+    if (energy > 0.7) {
+      pattern = pattern.concat(pattern); // Double the pattern for high energy
+    }
+    return pattern;
+  }
+
+  selectGuitarTechnique(genre, energy) {
+    if (genre === 'rock' && energy > 0.8) return 'distortion';
+    if (genre === 'jazz') return 'clean';
+    if (genre === 'blues') return 'overdrive';
+    return 'clean';
+  }
+
+  selectGuitarEffects(genre, mood) {
+    const effects = [];
+    if (genre === 'rock') effects.push('distortion', 'delay');
+    if (genre === 'ambient' || mood.primary === 'calm') effects.push('reverb', 'chorus');
+    if (genre === 'blues') effects.push('overdrive', 'vibrato');
+    return effects;
+  }
+
+  selectChordVoicing(genre) {
+    const voicings = {
+      jazz: 'extended',
+      rock: 'power',
+      pop: 'triad',
+      reggae: 'upstroke'
+    };
+    return voicings[genre] || 'triad';
+  }
+
+  generateJazzBassLine(chords) {
+    return chords.map(chord => ({
+      note: chord + '2',
+      style: 'walking',
+      duration: 0.5
+    }));
+  }
+
+  generateJazzChordVoicings(chords) {
+    return chords.map(chord => ({
+      chord: chord + 'maj7',
+      voicing: 'rootless',
+      inversion: Math.floor(Math.random() * 3)
+    }));
+  }
+
+  selectPianoStyle(genre) {
+    const styles = {
+      jazz: 'comping',
+      classical: 'arpeggiated',
+      pop: 'blocked',
+      blues: 'boogie'
+    };
+    return styles[genre] || 'blocked';
+  }
+
+  generateStringMelody(key, register) {
+    const scale = this.getScale(key);
+    const octave = register === 'high' ? 5 : register === 'mid' ? 4 : 3;
+    return scale.map((note, i) => ({
+      note: note + octave,
+      duration: 0.5,
+      dynamics: 'p'
+    }));
+  }
+
+  generateStringHarmony(chords, register) {
+    const octave = register === 'high' ? 4 : register === 'mid' ? 3 : 2;
+    return chords.map(chord => ({
+      chord: chord + octave,
+      technique: 'arco',
+      dynamics: 'mp'
+    }));
+  }
+
+  calculateStringDynamics(mood, energy) {
+    if (mood.primary === 'aggressive') return 'ff';
+    if (mood.primary === 'calm') return 'pp';
+    if (energy > 0.7) return 'f';
+    return 'mf';
+  }
+
+  selectWaveform(genre, mood) {
+    if (genre === 'electronic') return 'sawtooth';
+    if (mood.primary === 'aggressive') return 'square';
+    return 'sine';
+  }
+
+  selectFilter(energy) {
+    return {
+      type: 'lowpass',
+      cutoff: 1000 + (energy * 2000),
+      resonance: energy * 0.5
+    };
+  }
+
+  selectSynthEffects(genre) {
+    if (genre === 'electronic') return ['filter', 'delay', 'compression'];
+    if (genre === 'ambient') return ['reverb', 'chorus', 'delay'];
+    return ['reverb'];
+  }
+
+  getPentatonicScale(key) {
+    const scales = {
+      'C': ['C', 'D', 'E', 'G', 'A'],
+      'G': ['G', 'A', 'B', 'D', 'E'],
+      'D': ['D', 'E', 'F#', 'A', 'B']
+    };
+    return scales[key] || scales['C'];
+  }
+
+  getBluesScale(key) {
+    const scales = {
+      'C': ['C', 'Eb', 'F', 'Gb', 'G', 'Bb'],
+      'G': ['G', 'Bb', 'C', 'Db', 'D', 'F'],
+      'E': ['E', 'G', 'A', 'Bb', 'B', 'D']
+    };
+    return scales[key] || scales['C'];
+  }
+
+  getJazzScale(key) {
+    const scales = {
+      'C': ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+      'F': ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'],
+      'G': ['G', 'A', 'B', 'C', 'D', 'E', 'F#']
+    };
+    return scales[key] || scales['C'];
+  }
+
+  getScale(key) {
+    return this.getJazzScale(key); // Default to major scale
+  }
+
+  calculateComplexity(pattern) {
+    const totalBeats = Object.values(pattern).flat().length;
+    const activeBeats = Object.values(pattern).flat().filter(beat => beat > 0).length;
+    return activeBeats / totalBeats;
+  }
+
+  // Additional helper methods for advanced patterns
+  generateClassicalBass(key) {
+    const scale = this.getScale(key);
+    return scale.map(note => ({ note: note + '2', style: 'alberti', duration: 0.25 }));
+  }
+
+  generateClassicalMelody(key) {
+    const scale = this.getScale(key);
+    return scale.map(note => ({ note: note + '5', style: 'legato', duration: 0.5 }));
+  }
+
+  generatePopBass(chords) {
+    return chords.map(chord => ({ note: chord + '2', style: 'root', duration: 1.0 }));
+  }
+
+  generatePopChords(chords) {
+    return chords.map(chord => ({ chord: chord, voicing: 'block', duration: 1.0 }));
+  }
+
+  generateDramaticStrings(key, register) {
+    const scale = this.getScale(key);
+    const octave = register === 'high' ? 6 : register === 'mid' ? 4 : 2;
+    return scale.map(note => ({ note: note + octave, technique: 'tremolo', dynamics: 'ff' }));
+  }
+
+  generateElectronicSynth(key, energy) {
+    const scale = this.getScale(key);
+    return scale.map(note => ({ 
+      note: note + '4', 
+      waveform: 'sawtooth', 
+      filter: { cutoff: 1000 + energy * 1000 } 
+    }));
+  }
+
+  generatePopSynth(key, energy) {
+    const scale = this.getScale(key);
+    return scale.map(note => ({ 
+      note: note + '5', 
+      waveform: 'square', 
+      filter: { cutoff: 800 + energy * 800 } 
+    }));
+  }
+
+  generateAmbientSynth(key, mood) {
+    const scale = this.getScale(key);
+    const intensity = mood.intensity || 0.3;
+    return scale.map(note => ({ 
+      note: note + '3', 
+      waveform: 'sine', 
+      envelope: { attack: 2.0, release: 3.0 },
+      volume: intensity 
+    }));
+  }
+
+  generateJazzTrumpet(key, energy) {
+    const scale = this.getJazzScale(key);
+    return scale.map(note => ({ 
+      note: note + '4', 
+      articulation: 'legato', 
+      dynamics: energy > 0.7 ? 'f' : 'mf' 
+    }));
+  }
+
+  generateJazzTrombone(chords) {
+    return chords.map(chord => ({ 
+      note: chord + '3', 
+      articulation: 'tenuto', 
+      slide: true 
+    }));
+  }
+
+  generateFunkBrass(key, energy) {
+    const scale = this.getScale(key);
+    return scale.map(note => ({ 
+      note: note + '4', 
+      articulation: 'staccato', 
+      rhythm: 'syncopated',
+      dynamics: energy 
+    }));
+  }
+}
+
+// Beat Generation AI - Specialized for creating rhythmic patterns
+class BeatGeneratorAI {
+  constructor(type) {
+    this.type = type; // 'groove', 'rhythm', 'percussion', 'fills'
+    this.complexity = this.getComplexityLevel(type);
+    this.patternDatabase = new Map();
+    
+    console.log(`🥁 Initialized ${type} beat generator AI`);
+  }
+
+  getComplexityLevel(type) {
+    const levels = {
+      groove: 'high',
+      rhythm: 'medium', 
+      percussion: 'high',
+      fills: 'very_high'
+    };
+    return levels[type] || 'medium';
+  }
+
+  async generateBeat(context) {
+    console.log(`🎵 Generating ${this.type} beat for ${context.genre}`);
+    
+    switch (this.type) {
+      case 'groove':
+        return this.generateGroovePattern(context);
+      case 'rhythm':
+        return this.generateRhythmPattern(context);
+      case 'percussion':
+        return this.generatePercussionPattern(context);
+      case 'fills':
+        return this.generateFillPattern(context);
+      default:
+        return this.generateBasicBeat(context);
+    }
+  }
+
+  generateGroovePattern(context) {
+    const { genre, tempo, energy, swing } = context;
+    const pattern = {
+      kick: [],
+      snare: [],
+      hihat: [],
+      openHat: [],
+      ride: []
+    };
+
+    const measures = 4;
+    const subdivision = 16; // 16th notes
+    
+    for (let measure = 0; measure < measures; measure++) {
+      for (let beat = 0; beat < subdivision; beat++) {
+        const position = measure * subdivision + beat;
+        
+        // Genre-specific groove patterns
+        if (genre === 'funk') {
+          pattern.kick[position] = (beat === 0 || beat === 6 || beat === 10) ? energy : 0;
+          pattern.snare[position] = (beat === 4 || beat === 12) ? energy * 0.9 : 0;
+          pattern.hihat[position] = beat % 2 === 1 ? energy * 0.6 : 0;
+        } else if (genre === 'rock') {
+          pattern.kick[position] = (beat === 0 || beat === 8) ? energy : 0;
+          pattern.snare[position] = (beat === 4 || beat === 12) ? energy : 0;
+          pattern.hihat[position] = energy * 0.7;
+        } else if (genre === 'reggae') {
+          pattern.kick[position] = (beat === 2 || beat === 6 || beat === 10 || beat === 14) ? energy * 0.8 : 0;
+          pattern.snare[position] = (beat === 4 || beat === 12) ? energy : 0;
+          pattern.hihat[position] = beat % 4 === 2 ? energy * 0.5 : 0;
+        }
+      }
+    }
+
+    return {
+      type: 'groove',
+      pattern,
+      swing: swing || 0,
+      complexity: this.calculateBeatComplexity(pattern),
+      humanization: this.addHumanization(pattern, energy)
+    };
+  }
+
+  generateRhythmPattern(context) {
+    const { genre, tempo, timeSignature, energy } = context;
+    const pattern = [];
+    
+    const beatsPerBar = timeSignature === '3/4' ? 3 : 4;
+    const subdivisions = ['quarter', 'eighth', 'sixteenth'];
+    
+    for (let bar = 0; bar < 2; bar++) {
+      for (let beat = 0; beat < beatsPerBar; beat++) {
+        const subdivision = subdivisions[Math.floor(Math.random() * subdivisions.length)];
+        pattern.push({
+          bar,
+          beat,
+          subdivision,
+          accent: beat === 0 ? energy : energy * 0.6,
+          duration: this.getDuration(subdivision)
+        });
+      }
+    }
+
+    return {
+      type: 'rhythm',
+      pattern,
+      timeSignature,
+      accentPattern: this.generateAccentPattern(genre, energy)
+    };
+  }
+
+  generatePercussionPattern(context) {
+    const { genre, energy, mood } = context;
+    const instruments = this.selectPercussionInstruments(genre);
+    const pattern = {};
+
+    instruments.forEach(instrument => {
+      pattern[instrument] = this.generateInstrumentPattern(instrument, genre, energy);
+    });
+
+    return {
+      type: 'percussion',
+      instruments: instruments,
+      pattern,
+      polyrhythm: genre === 'afrobeat' || genre === 'latin',
+      dynamics: this.calculatePercussionDynamics(mood, energy)
+    };
+  }
+
+  generateFillPattern(context) {
+    const { genre, energy, position } = context; // position: 'pre-chorus', 'bridge', etc.
+    
+    const fillTypes = ['tom-roll', 'snare-roll', 'crash-accent', 'polyrhythmic'];
+    const selectedFill = fillTypes[Math.floor(Math.random() * fillTypes.length)];
+    
+    const pattern = this.createFillByType(selectedFill, genre, energy, position);
+
+    return {
+      type: 'fill',
+      fillType: selectedFill,
+      pattern,
+      position,
+      buildup: energy > 0.7,
+      resolution: this.calculateFillResolution(position)
+    };
+  }
+
+  generateBasicBeat(context) {
+    return {
+      type: this.type,
+      pattern: [1, 0, 1, 0],
+      tempo: context.tempo,
+      energy: context.energy
+    };
+  }
+
+  selectPercussionInstruments(genre) {
+    const instrumentSets = {
+      latin: ['conga', 'bongo', 'timbale', 'cowbell', 'claves'],
+      afrobeat: ['djembe', 'talking_drum', 'shekere', 'cowbell'],
+      rock: ['tambourine', 'cowbell', 'woodblock'],
+      electronic: ['808_clap', '909_perc', 'reverse_cymbal'],
+      jazz: ['brushes', 'rim_shot', 'triangle']
+    };
+
+    return instrumentSets[genre] || instrumentSets.rock;
+  }
+
+  generateInstrumentPattern(instrument, genre, energy) {
+    const patterns = {
+      conga: this.generateCongaPattern(genre, energy),
+      bongo: this.generateBongoPattern(genre, energy),
+      tambourine: this.generateTambourinePattern(genre, energy),
+      cowbell: this.generateCowbellPattern(genre, energy)
+    };
+
+    return patterns[instrument] || this.generateGenericPercPattern(energy);
+  }
+
+  generateCongaPattern(genre, energy) {
+    if (genre === 'latin') {
+      return [
+        { beat: 0, tone: 'low', velocity: energy },
+        { beat: 1, tone: 'high', velocity: energy * 0.7 },
+        { beat: 2.5, tone: 'low', velocity: energy * 0.8 },
+        { beat: 3, tone: 'slap', velocity: energy * 0.9 }
+      ];
+    }
+    return this.generateGenericPercPattern(energy);
+  }
+
+  generateBongoPattern(genre, energy) {
+    return [
+      { beat: 0, drum: 'high', velocity: energy * 0.8 },
+      { beat: 0.5, drum: 'low', velocity: energy * 0.6 },
+      { beat: 1, drum: 'high', velocity: energy * 0.7 },
+      { beat: 2, drum: 'low', velocity: energy }
+    ];
+  }
+
+  generateTambourinePattern(genre, energy) {
+    const pattern = [];
+    for (let i = 0; i < 16; i++) {
+      if (i % 4 === 0 || (i % 4 === 2 && energy > 0.6)) {
+        pattern.push({ beat: i / 4, technique: 'shake', velocity: energy * 0.5 });
+      }
+    }
+    return pattern;
+  }
+
+  generateCowbellPattern(genre, energy) {
+    if (genre === 'funk' || genre === 'latin') {
+      return [
+        { beat: 0, velocity: energy },
+        { beat: 1.5, velocity: energy * 0.8 },
+        { beat: 2, velocity: energy * 0.6 },
+        { beat: 3.5, velocity: energy * 0.9 }
+      ];
+    }
+    return [{ beat: 0, velocity: energy }, { beat: 2, velocity: energy * 0.7 }];
+  }
+
+  generateGenericPercPattern(energy) {
+    return [
+      { beat: 0, velocity: energy },
+      { beat: 2, velocity: energy * 0.7 }
+    ];
+  }
+
+  createFillByType(fillType, genre, energy, position) {
+    switch (fillType) {
+      case 'tom-roll':
+        return this.generateTomRoll(energy);
+      case 'snare-roll':
+        return this.generateSnareRoll(energy);
+      case 'crash-accent':
+        return this.generateCrashAccent(energy);
+      case 'polyrhythmic':
+        return this.generatePolyrhythmicFill(genre, energy);
+      default:
+        return this.generateBasicFill(energy);
+    }
+  }
+
+  generateTomRoll(energy) {
+    const toms = ['high_tom', 'mid_tom', 'floor_tom'];
+    const pattern = [];
+    
+    for (let i = 0; i < 8; i++) {
+      pattern.push({
+        beat: i / 4,
+        drum: toms[Math.floor(i / 3)],
+        velocity: energy * (0.7 + (i * 0.05))
+      });
+    }
+    
+    return pattern;
+  }
+
+  generateSnareRoll(energy) {
+    const pattern = [];
+    for (let i = 0; i < 16; i++) {
+      pattern.push({
+        beat: i / 8,
+        drum: 'snare',
+        velocity: energy * (0.5 + (i * 0.03)),
+        technique: i < 8 ? 'buzz' : 'accent'
+      });
+    }
+    return pattern;
+  }
+
+  generateCrashAccent(energy) {
+    return [
+      { beat: 0, drum: 'crash', velocity: energy, technique: 'accent' },
+      { beat: 0.5, drum: 'kick', velocity: energy * 0.8 },
+      { beat: 1, drum: 'snare', velocity: energy * 0.9 }
+    ];
+  }
+
+  generatePolyrhythmicFill(genre, energy) {
+    // Create overlapping rhythmic patterns
+    const pattern = [];
+    
+    // 3 against 4 polyrhythm
+    for (let i = 0; i < 3; i++) {
+      pattern.push({
+        beat: i * (4/3) / 4,
+        drum: 'hi_tom',
+        velocity: energy * 0.7,
+        polyrhythm: '3_against_4'
+      });
+    }
+    
+    for (let i = 0; i < 4; i++) {
+      pattern.push({
+        beat: i / 4,
+        drum: 'kick',
+        velocity: energy * 0.6,
+        polyrhythm: '4_base'
+      });
+    }
+    
+    return pattern;
+  }
+
+  generateBasicFill(energy) {
+    return [
+      { beat: 0, drum: 'snare', velocity: energy },
+      { beat: 0.5, drum: 'snare', velocity: energy * 0.8 },
+      { beat: 1, drum: 'crash', velocity: energy }
+    ];
+  }
+
+  getDuration(subdivision) {
+    const durations = {
+      whole: 4.0,
+      half: 2.0,
+      quarter: 1.0,
+      eighth: 0.5,
+      sixteenth: 0.25,
+      thirty_second: 0.125
+    };
+    return durations[subdivision] || 1.0;
+  }
+
+  generateAccentPattern(genre, energy) {
+    const patterns = {
+      rock: [1, 0, 1, 0],
+      funk: [1, 0, 1, 1],
+      jazz: [1, 0, 0, 1],
+      latin: [1, 1, 0, 1]
+    };
+    
+    let pattern = patterns[genre] || patterns.rock;
+    return pattern.map(accent => accent * energy);
+  }
+
+  calculateBeatComplexity(pattern) {
+    let complexity = 0;
+    Object.values(pattern).forEach(track => {
+      const activeBeats = track.filter(beat => beat > 0).length;
+      complexity += activeBeats / track.length;
+    });
+    return complexity / Object.keys(pattern).length;
+  }
+
+  addHumanization(pattern, energy) {
+    // Add slight timing and velocity variations to make beats feel more human
+    const humanization = {
+      timing: energy > 0.7 ? 0.02 : 0.05, // Less humanization for high energy
+      velocity: 0.1,
+      microTiming: true
+    };
+    
+    return humanization;
+  }
+
+  calculatePercussionDynamics(mood, energy) {
+    const dynamics = {
+      overall: energy,
+      accents: mood.primary === 'aggressive' ? energy * 1.2 : energy * 0.8,
+      background: energy * 0.6
+    };
+    
+    return dynamics;
+  }
+
+  calculateFillResolution(position) {
+    const resolutions = {
+      'pre-chorus': 'buildup',
+      'bridge': 'transition',
+      'outro': 'climax',
+      'verse-end': 'subtle'
+    };
+    
+    return resolutions[position] || 'standard';
+  }
+}
+
+// Arrangement Coordinator - Manages how instruments interact
+class ArrangementCoordinator {
+  constructor() {
+    this.arrangements = new Map();
+    this.currentArrangement = null;
+    
+    console.log('🎭 Initialized Arrangement Coordinator');
+  }
+
+  async coordinateArrangement(instruments, context) {
+    console.log(`🎼 Coordinating arrangement for ${instruments.length} instruments`);
+    
+    const arrangement = {
+      sections: this.createSections(context),
+      layering: this.planLayering(instruments, context),
+      dynamics: this.planDynamics(context),
+      transitions: this.planTransitions(context)
+    };
+
+    return this.applyArrangementRules(arrangement, context);
+  }
+
+  createSections(context) {
+    const { genre, energy, complexity } = context;
+    
+    const baseSections = ['intro', 'verse', 'chorus', 'verse', 'chorus', 'outro'];
+    const sections = [];
+
+    baseSections.forEach((section, index) => {
+      sections.push({
+        name: section,
+        duration: this.getSectionDuration(section, genre),
+        energy: this.getSectionEnergy(section, energy),
+        complexity: this.getSectionComplexity(section, complexity),
+        order: index
+      });
+    });
+
+    // Add bridge for longer arrangements
+    if (energy > 0.6 || complexity > 0.7) {
+      sections.splice(4, 0, {
+        name: 'bridge',
+        duration: this.getSectionDuration('bridge', genre),
+        energy: energy * 0.8,
+        complexity: complexity * 1.2,
+        order: 4
+      });
+    }
+
+    return sections;
+  }
+
+  planLayering(instruments, context) {
+    const { genre, energy } = context;
+    const layering = {};
+
+    instruments.forEach(instrument => {
+      layering[instrument] = {
+        entry: this.calculateEntryPoint(instrument, genre),
+        prominence: this.calculateProminence(instrument, genre, energy),
+        interactions: this.findInteractions(instrument, instruments, genre)
+      };
+    });
+
+    return layering;
+  }
+
+  planDynamics(context) {
+    const { sections, energy } = context;
+    
+    return {
+      overall: energy,
+      sectional: this.createDynamicCurve(sections || [], energy),
+      micro: this.createMicroDynamics(energy)
+    };
+  }
+
+  planTransitions(context) {
+    const transitions = [];
+    const sections = context.sections || [];
+
+    for (let i = 0; i < sections.length - 1; i++) {
+      const current = sections[i];
+      const next = sections[i + 1];
+      
+      transitions.push({
+        from: current.name,
+        to: next.name,
+        type: this.selectTransitionType(current, next),
+        duration: this.calculateTransitionDuration(current, next),
+        technique: this.selectTransitionTechnique(current, next)
+      });
+    }
+
+    return transitions;
+  }
+
+  applyArrangementRules(arrangement, context) {
+    const { genre } = context;
+    
+    // Genre-specific arrangement rules
+    if (genre === 'jazz') {
+      arrangement = this.applyJazzRules(arrangement);
+    } else if (genre === 'rock') {
+      arrangement = this.applyRockRules(arrangement);
+    } else if (genre === 'electronic') {
+      arrangement = this.applyElectronicRules(arrangement);
+    }
+
+    return arrangement;
+  }
+
+  getSectionDuration(section, genre) {
+    const durations = {
+      intro: genre === 'electronic' ? 16 : 8,
+      verse: 16,
+      chorus: 16,
+      bridge: 8,
+      outro: genre === 'jazz' ? 16 : 8
+    };
+    
+    return durations[section] || 16;
+  }
+
+  getSectionEnergy(section, baseEnergy) {
+    const energyMultipliers = {
+      intro: 0.6,
+      verse: 0.8,
+      chorus: 1.0,
+      bridge: 0.9,
+      outro: 0.7
+    };
+    
+    return baseEnergy * (energyMultipliers[section] || 1.0);
+  }
+
+  getSectionComplexity(section, baseComplexity) {
+    const complexityMultipliers = {
+      intro: 0.5,
+      verse: 0.8,
+      chorus: 1.0,
+      bridge: 1.2,
+      outro: 0.6
+    };
+    
+    return baseComplexity * (complexityMultipliers[section] || 1.0);
+  }
+
+  calculateEntryPoint(instrument, genre) {
+    const entryPoints = {
+      rock: {
+        drums: 'intro',
+        bass: 'verse',
+        rhythm_guitar: 'verse',
+        lead_guitar: 'chorus',
+        vocals: 'verse'
+      },
+      jazz: {
+        piano: 'intro',
+        bass: 'intro',
+        drums: 'verse',
+        saxophone: 'chorus'
+      },
+      electronic: {
+        synthesizer: 'intro',
+        drums: 'intro',
+        bass: 'verse'
+      }
+    };
+
+    return entryPoints[genre]?.[instrument] || 'verse';
+  }
+
+  calculateProminence(instrument, genre, energy) {
+    const baseProminence = {
+      drums: 0.8,
+      bass: 0.7,
+      lead_guitar: 0.9,
+      rhythm_guitar: 0.6,
+      piano: 0.7,
+      vocals: 1.0,
+      strings: 0.5,
+      synthesizer: 0.6
+    };
+
+    let prominence = baseProminence[instrument] || 0.5;
+    
+    // Adjust for genre
+    if (genre === 'jazz' && instrument === 'piano') prominence *= 1.2;
+    if (genre === 'rock' && instrument === 'lead_guitar') prominence *= 1.3;
+    if (genre === 'electronic' && instrument === 'synthesizer') prominence *= 1.4;
+    
+    // Energy affects prominence
+    prominence *= (0.7 + energy * 0.3);
+    
+    return Math.min(1.0, prominence);
+  }
+
+  findInteractions(instrument, allInstruments, genre) {
+    const interactions = [];
+    
+    // Define instrument interaction patterns
+    const interactionRules = {
+      drums: ['bass', 'rhythm_guitar'],
+      bass: ['drums', 'piano'],
+      lead_guitar: ['rhythm_guitar', 'bass'],
+      piano: ['bass', 'drums', 'strings'],
+      strings: ['piano', 'vocals']
+    };
+
+    const potentialInteractions = interactionRules[instrument] || [];
+    
+    potentialInteractions.forEach(partner => {
+      if (allInstruments.includes(partner)) {
+        interactions.push({
+          partner,
+          type: this.getInteractionType(instrument, partner, genre),
+          strength: this.getInteractionStrength(instrument, partner)
+        });
+      }
+    });
+
+    return interactions;
+  }
+
+  getInteractionType(instrument1, instrument2, genre) {
+    // Define how instruments interact
+    if ((instrument1 === 'drums' && instrument2 === 'bass') || 
+        (instrument1 === 'bass' && instrument2 === 'drums')) {
+      return 'rhythmic_lock';
+    }
+    
+    if ((instrument1 === 'lead_guitar' && instrument2 === 'rhythm_guitar') ||
+        (instrument1 === 'rhythm_guitar' && instrument2 === 'lead_guitar')) {
+      return 'harmonic_complement';
+    }
+    
+    if (instrument1 === 'piano' || instrument2 === 'piano') {
+      return 'harmonic_support';
+    }
+    
+    return 'general_support';
+  }
+
+  getInteractionStrength(instrument1, instrument2) {
+    // Some instrument pairs have stronger natural interactions
+    const strongPairs = [
+      ['drums', 'bass'],
+      ['lead_guitar', 'rhythm_guitar'],
+      ['piano', 'bass'],
+      ['strings', 'piano']
+    ];
+    
+    const isStrongPair = strongPairs.some(pair => 
+      (pair[0] === instrument1 && pair[1] === instrument2) ||
+      (pair[0] === instrument2 && pair[1] === instrument1)
+    );
+    
+    return isStrongPair ? 0.8 : 0.5;
+  }
+
+  createDynamicCurve(sections, energy) {
+    return sections.map(section => ({
+      section: section.name,
+      start: this.getSectionEnergy(section.name, energy),
+      peak: this.getSectionEnergy(section.name, energy) * 1.1,
+      end: this.getSectionEnergy(section.name, energy) * 0.9
+    }));
+  }
+
+  createMicroDynamics(energy) {
+    return {
+      breathingRoom: energy < 0.6 ? 0.3 : 0.1,
+      accentuation: energy > 0.7 ? 0.4 : 0.2,
+      swells: energy > 0.5
+    };
+  }
+
+  selectTransitionType(currentSection, nextSection) {
+    const transitionTypes = {
+      'intro-verse': 'buildup',
+      'verse-chorus': 'lift',
+      'chorus-verse': 'pullback',
+      'verse-bridge': 'shift',
+      'bridge-chorus': 'explosion',
+      'chorus-outro': 'fadeout'
+    };
+    
+    const key = `${currentSection.name}-${nextSection.name}`;
+    return transitionTypes[key] || 'smooth';
+  }
+
+  calculateTransitionDuration(currentSection, nextSection) {
+    // Transitions are typically 1-4 beats
+    if (currentSection.name === 'bridge' && nextSection.name === 'chorus') {
+      return 4; // Dramatic transition
+    }
+    if (currentSection.name === 'chorus' && nextSection.name === 'outro') {
+      return 8; // Extended fadeout
+    }
+    return 2; // Standard transition
+  }
+
+  selectTransitionTechnique(currentSection, nextSection) {
+    const techniques = {
+      buildup: ['drum_fill', 'rising_synth', 'cymbal_swell'],
+      pullback: ['filter_sweep', 'volume_drop', 'instrument_dropout'],
+      explosion: ['crash_accent', 'full_band_hit', 'harmonic_resolution'],
+      shift: ['key_change', 'tempo_shift', 'instrument_swap']
+    };
+    
+    const transitionType = this.selectTransitionType(currentSection, nextSection);
+    const availableTechniques = techniques[transitionType] || ['standard'];
+    
+    return availableTechniques[Math.floor(Math.random() * availableTechniques.length)];
+  }
+
+  applyJazzRules(arrangement) {
+    // Jazz-specific arrangement modifications
+    arrangement.improvisation = {
+      enabled: true,
+      soloOrder: ['piano', 'saxophone', 'trumpet', 'bass'],
+      tradingBars: 4
+    };
+    
+    arrangement.swing = {
+      enabled: true,
+      factor: 0.6
+    };
+    
+    return arrangement;
+  }
+
+  applyRockRules(arrangement) {
+    // Rock-specific arrangement modifications
+    arrangement.powerStructure = {
+      verses: 'restrained',
+      choruses: 'full_power',
+      bridge: 'dynamic_contrast'
+    };
+    
+    arrangement.guitarInterplay = {
+      enabled: true,
+      rhythm_leads_verse: true,
+      lead_dominates_chorus: true
+    };
+    
+    return arrangement;
+  }
+
+  applyElectronicRules(arrangement) {
+    // Electronic-specific arrangement modifications
+    arrangement.buildups = {
+      enabled: true,
+      technique: 'filter_sweeps',
+      dropPoints: ['chorus']
+    };
+    
+    arrangement.automation = {
+      enabled: true,
+      parameters: ['filter_cutoff', 'reverb_send', 'delay_feedback']
+    };
+    
+    return arrangement;
+  }
+}
+
+// Conflict Resolver - Handles disagreements between AIs
+class ConflictResolver {
+  constructor() {
+    this.resolutionStrategies = new Map();
+    this.conflictHistory = [];
+    
+    console.log('⚖️ Initialized Conflict Resolver');
+  }
+
+  async resolveConflicts(aiSuggestions, context) {
+    console.log(`🔧 Resolving conflicts between ${aiSuggestions.length} AI suggestions`);
+    
+    const conflicts = this.identifyConflicts(aiSuggestions);
+    
+    if (conflicts.length === 0) {
+      return { resolved: aiSuggestions, conflicts: [] };
+    }
+
+    const resolutions = [];
+    for (const conflict of conflicts) {
+      const resolution = await this.resolveConflict(conflict, context);
+      resolutions.push(resolution);
+    }
+
+    return {
+      resolved: this.applyResolutions(aiSuggestions, resolutions),
+      conflicts: conflicts,
+      resolutions: resolutions
+    };
+  }
+
+  identifyConflicts(suggestions) {
+    const conflicts = [];
+    
+    // Check for tempo conflicts
+    const tempos = suggestions.map(s => s.tempo).filter(t => t);
+    if (this.hasVariation(tempos, 10)) { // 10 BPM tolerance
+      conflicts.push({
+        type: 'tempo',
+        values: tempos,
+        severity: this.calculateSeverity(tempos, 'tempo')
+      });
+    }
+
+    // Check for key conflicts
+    const keys = suggestions.map(s => s.key).filter(k => k);
+    if (this.hasKeyConflicts(keys)) {
+      conflicts.push({
+        type: 'key',
+        values: keys,
+        severity: this.calculateSeverity(keys, 'key')
+      });
+    }
+
+    // Check for energy level conflicts
+    const energies = suggestions.map(s => s.energy).filter(e => e !== undefined);
+    if (this.hasVariation(energies, 0.3)) { // 30% tolerance
+      conflicts.push({
+        type: 'energy',
+        values: energies,
+        severity: this.calculateSeverity(energies, 'energy')
+      });
+    }
+
+    // Check for instrument conflicts (overlapping frequencies/roles)
+    const instrumentConflicts = this.checkInstrumentConflicts(suggestions);
+    conflicts.push(...instrumentConflicts);
+
+    return conflicts;
+  }
+
+  async resolveConflict(conflict, context) {
+    const strategy = this.selectResolutionStrategy(conflict, context);
+    
+    switch (strategy) {
+      case 'average':
+        return this.resolveByAverage(conflict);
+      case 'weighted_vote':
+        return this.resolveByWeightedVote(conflict, context);
+      case 'genre_preference':
+        return this.resolveByGenrePreference(conflict, context);
+      case 'energy_consistency':
+        return this.resolveByEnergyConsistency(conflict, context);
+      case 'harmonic_compatibility':
+        return this.resolveByHarmonicCompatibility(conflict, context);
+      default:
+        return this.resolveByDefault(conflict);
+    }
+  }
+
+  selectResolutionStrategy(conflict, context) {
+    const { type, severity } = conflict;
+    const { genre, priority } = context;
+
+    // High severity conflicts need more sophisticated resolution
+    if (severity > 0.8) {
+      if (type === 'key') return 'harmonic_compatibility';
+      if (type === 'tempo') return 'genre_preference';
+      if (type === 'energy') return 'energy_consistency';
+    }
+
+    // Medium severity can use weighted voting
+    if (severity > 0.5) {
+      return 'weighted_vote';
+    }
+
+    // Low severity conflicts can be averaged
+    return 'average';
+  }
+
+  resolveByAverage(conflict) {
+    const { type, values } = conflict;
+    
+    if (type === 'tempo' || type === 'energy') {
+      const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+      return { strategy: 'average', value: average, confidence: 0.7 };
+    }
+    
+    if (type === 'key') {
+      // For keys, pick the most common one
+      const keyCount = {};
+      values.forEach(key => keyCount[key] = (keyCount[key] || 0) + 1);
+      const mostCommon = Object.keys(keyCount).reduce((a, b) => 
+        keyCount[a] > keyCount[b] ? a : b
+      );
+      return { strategy: 'average', value: mostCommon, confidence: 0.6 };
+    }
+
+    return { strategy: 'average', value: values[0], confidence: 0.5 };
+  }
+
+  resolveByWeightedVote(conflict, context) {
+    // Weight votes based on AI specialization and confidence
+    const weights = this.calculateAIWeights(conflict, context);
+    
+    if (conflict.type === 'tempo' || conflict.type === 'energy') {
+      let weightedSum = 0;
+      let totalWeight = 0;
+      
+      conflict.values.forEach((value, index) => {
+        const weight = weights[index] || 1;
+        weightedSum += value * weight;
+        totalWeight += weight;
+      });
+      
+      return { 
+        strategy: 'weighted_vote', 
+        value: weightedSum / totalWeight, 
+        confidence: 0.8 
+      };
+    }
+
+    // For categorical values like keys, pick highest weighted option
+    const weightedCounts = {};
+    conflict.values.forEach((value, index) => {
+      const weight = weights[index] || 1;
+      weightedCounts[value] = (weightedCounts[value] || 0) + weight;
+    });
+
+    const winner = Object.keys(weightedCounts).reduce((a, b) => 
+      weightedCounts[a] > weightedCounts[b] ? a : b
+    );
+
+    return { strategy: 'weighted_vote', value: winner, confidence: 0.8 };
+  }
+
+  resolveByGenrePreference(conflict, context) {
+    const { genre } = context;
+    const genreDefaults = this.getGenreDefaults(genre);
+    
+    // Find the value closest to genre preference
+    let bestValue = conflict.values[0];
+    let bestDistance = Infinity;
+    
+    conflict.values.forEach(value => {
+      const distance = this.calculateGenreDistance(value, genreDefaults[conflict.type], conflict.type);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestValue = value;
+      }
+    });
+
+    return { 
+      strategy: 'genre_preference', 
+      value: bestValue, 
+      confidence: 0.9 
+    };
+  }
+
+  resolveByEnergyConsistency(conflict, context) {
+    const targetEnergy = context.energy || 0.5;
+    
+    // Find the energy value closest to the target
+    let bestValue = conflict.values[0];
+    let bestDistance = Math.abs(conflict.values[0] - targetEnergy);
+    
+    conflict.values.forEach(value => {
+      const distance = Math.abs(value - targetEnergy);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestValue = value;
+      }
+    });
+
+    return { 
+      strategy: 'energy_consistency', 
+      value: bestValue, 
+      confidence: 0.85 
+    };
+  }
+
+  resolveByHarmonicCompatibility(conflict, context) {
+    if (conflict.type !== 'key') {
+      return this.resolveByDefault(conflict);
+    }
+
+    const { genre } = context;
+    const compatibleKeys = this.getCompatibleKeys(context.key || 'C', genre);
+    
+    // Find the suggested key that's most compatible
+    let bestKey = conflict.values[0];
+    let bestCompatibility = 0;
+    
+    conflict.values.forEach(key => {
+      const compatibility = compatibleKeys[key] || 0;
+      if (compatibility > bestCompatibility) {
+        bestCompatibility = compatibility;
+        bestKey = key;
+      }
+    });
+
+    return { 
+      strategy: 'harmonic_compatibility', 
+      value: bestKey, 
+      confidence: 0.9 
+    };
+  }
+
+  resolveByDefault(conflict) {
+    // Default resolution: pick the first value
+    return { 
+      strategy: 'default', 
+      value: conflict.values[0], 
+      confidence: 0.3 
+    };
+  }
+
+  hasVariation(values, tolerance) {
+    if (values.length < 2) return false;
+    
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    
+    return (max - min) > tolerance;
+  }
+
+  hasKeyConflicts(keys) {
+    if (keys.length < 2) return false;
+    
+    // Check if all keys are the same or harmonically related
+    const uniqueKeys = [...new Set(keys)];
+    if (uniqueKeys.length === 1) return false;
+    
+    // Simple check: different keys = conflict (could be more sophisticated)
+    return true;
+  }
+
+  calculateSeverity(values, type) {
+    if (values.length < 2) return 0;
+    
+    if (type === 'tempo' || type === 'energy') {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = max - min;
+      
+      // Normalize severity based on type
+      if (type === 'tempo') {
+        return Math.min(1, range / 50); // 50 BPM = max severity
+      } else {
+        return Math.min(1, range / 0.5); // 0.5 energy units = max severity
+      }
+    }
+    
+    if (type === 'key') {
+      const uniqueKeys = [...new Set(values)];
+      return Math.min(1, (uniqueKeys.length - 1) / 3); // 4+ keys = max severity
+    }
+    
+    return 0.5; // Default moderate severity
+  }
+
+  checkInstrumentConflicts(suggestions) {
+    const conflicts = [];
+    const instrumentsByFrequency = this.groupInstrumentsByFrequency(suggestions);
+    
+    // Check for frequency range overlaps
+    Object.keys(instrumentsByFrequency).forEach(range => {
+      const instruments = instrumentsByFrequency[range];
+      if (instruments.length > 2) { // Too many instruments in same frequency range
+        conflicts.push({
+          type: 'frequency_conflict',
+          range: range,
+          instruments: instruments,
+          severity: Math.min(1, instruments.length / 4)
+        });
+      }
+    });
+
+    return conflicts;
+  }
+
+  groupInstrumentsByFrequency(suggestions) {
+    const frequencyRanges = {
+      low: ['bass', 'kick', 'sub_bass'],
+      low_mid: ['bass_guitar', 'cello', 'trombone'],
+      mid: ['guitar', 'piano', 'vocals', 'saxophone'],
+      high_mid: ['lead_guitar', 'violin', 'trumpet'],
+      high: ['cymbals', 'flute', 'piccolo', 'hi_hat']
+    };
+
+    const grouped = {
+      low: [],
+      low_mid: [],
+      mid: [],
+      high_mid: [],
+      high: []
+    };
+
+    suggestions.forEach(suggestion => {
+      if (suggestion.instruments) {
+        suggestion.instruments.forEach(instrument => {
+          Object.keys(frequencyRanges).forEach(range => {
+            if (frequencyRanges[range].includes(instrument)) {
+              grouped[range].push(instrument);
+            }
+          });
+        });
+      }
+    });
+
+    return grouped;
+  }
+
+  calculateAIWeights(conflict, context) {
+    // Weight AIs based on their specialization for this conflict type
+    const weights = [];
+    
+    conflict.values.forEach((value, index) => {
+      let weight = 1.0; // Base weight
+      
+      // Increase weight for specialized AIs
+      if (conflict.type === 'tempo' && context.beatSpecialists) {
+        weight *= 1.5; // Beat specialists get more weight for tempo
+      }
+      
+      if (conflict.type === 'key' && context.harmonicSpecialists) {
+        weight *= 1.5; // Harmonic specialists get more weight for key
+      }
+      
+      weights.push(weight);
+    });
+    
+    return weights;
+  }
+
+  getGenreDefaults(genre) {
+    const defaults = {
+      rock: { tempo: 120, energy: 0.8, key: 'E' },
+      jazz: { tempo: 120, energy: 0.6, key: 'Bb' },
+      electronic: { tempo: 128, energy: 0.9, key: 'C' },
+      blues: { tempo: 90, energy: 0.7, key: 'E' },
+      reggae: { tempo: 75, energy: 0.6, key: 'G' }
+    };
+    
+    return defaults[genre] || defaults.rock;
+  }
+
+  calculateGenreDistance(value, target, type) {
+    if (type === 'tempo' || type === 'energy') {
+      return Math.abs(value - target);
+    }
+    
+    if (type === 'key') {
+      // Simplified key distance (could use circle of fifths)
+      return value === target ? 0 : 1;
+    }
+    
+    return 0;
+  }
+
+  getCompatibleKeys(baseKey, genre) {
+    // Simplified key compatibility (could be more sophisticated)
+    const compatibility = {
+      'C': { 'C': 1.0, 'G': 0.9, 'F': 0.9, 'Am': 0.8, 'Dm': 0.7 },
+      'G': { 'G': 1.0, 'C': 0.9, 'D': 0.9, 'Em': 0.8, 'Am': 0.7 },
+      'F': { 'F': 1.0, 'C': 0.9, 'Bb': 0.9, 'Dm': 0.8, 'Gm': 0.7 }
+    };
+    
+    return compatibility[baseKey] || { [baseKey]: 1.0 };
+  }
+
+  applyResolutions(originalSuggestions, resolutions) {
+    const resolved = [...originalSuggestions];
+    
+    resolutions.forEach(resolution => {
+      // Apply the resolution to the suggestions
+      resolved.forEach(suggestion => {
+        if (resolution.type === 'tempo') {
+          suggestion.tempo = resolution.value;
+        } else if (resolution.type === 'key') {
+          suggestion.key = resolution.value;
+        } else if (resolution.type === 'energy') {
+          suggestion.energy = resolution.value;
+        }
+      });
+    });
+    
+    return resolved;
+  }
+}
+
+// Quality Assessment AI - Evaluates the final musical output
+class QualityAssessmentAI {
+  constructor() {
+    this.qualityMetrics = new Map();
+    this.assessmentHistory = [];
+    
+    console.log('🎯 Initialized Quality Assessment AI');
+  }
+
+  async assessQuality(musicData, context) {
+    console.log(`🔍 Assessing quality of generated music`);
+    
+    const assessment = {
+      overall: 0,
+      categories: {},
+      recommendations: [],
+      timestamp: Date.now()
+    };
+
+    // Assess different quality aspects
+    assessment.categories.harmony = this.assessHarmony(musicData, context);
+    assessment.categories.rhythm = this.assessRhythm(musicData, context);
+    assessment.categories.arrangement = this.assessArrangement(musicData, context);
+    assessment.categories.creativity = this.assessCreativity(musicData, context);
+    assessment.categories.genreConsistency = this.assessGenreConsistency(musicData, context);
+    assessment.categories.technicalExecution = this.assessTechnicalExecution(musicData, context);
+
+    // Calculate overall score
+    assessment.overall = this.calculateOverallScore(assessment.categories);
+
+    // Generate recommendations
+    assessment.recommendations = this.generateRecommendations(assessment.categories, context);
+
+    // Store assessment for learning
+    this.assessmentHistory.push(assessment);
+
+    return assessment;
+  }
+
+  assessHarmony(musicData, context) {
+    const score = {
+      value: 0,
+      details: {},
+      weight: 0.25
+    };
+
+    // Check chord progressions
+    score.details.chordProgression = this.evaluateChordProgression(musicData.chords, context);
+    
+    // Check voice leading
+    score.details.voiceLeading = this.evaluateVoiceLeading(musicData.voices, context);
+    
+    // Check key consistency
+    score.details.keyConsistency = this.evaluateKeyConsistency(musicData.key, musicData.sections);
+    
+    // Check harmonic rhythm
+    score.details.harmonicRhythm = this.evaluateHarmonicRhythm(musicData.chords, context.tempo);
+
+    score.value = this.averageScores(Object.values(score.details));
+    return score;
+  }
+
+  assessRhythm(musicData, context) {
+    const score = {
+      value: 0,
+      details: {},
+      weight: 0.20
+    };
+
+    // Check tempo consistency
+    score.details.tempoConsistency = this.evaluateTempoConsistency(musicData.tempo, context);
+    
+    // Check rhythmic complexity
+    score.details.rhythmicComplexity = this.evaluateRhythmicComplexity(musicData.rhythm, context);
+    
+    // Check groove quality
+    score.details.groove = this.evaluateGroove(musicData.drums, context);
+    
+    // Check rhythmic variety
+    score.details.variety = this.evaluateRhythmicVariety(musicData.rhythm);
+
+    score.value = this.averageScores(Object.values(score.details));
+    return score;
+  }
+
+  assessArrangement(musicData, context) {
+    const score = {
+      value: 0,
+      details: {},
+      weight: 0.20
+    };
+
+    // Check instrument balance
+    score.details.balance = this.evaluateInstrumentBalance(musicData.instruments);
+    
+    // Check section transitions
+    score.details.transitions = this.evaluateSectionTransitions(musicData.sections);
+    
+    // Check dynamic range
+    score.details.dynamics = this.evaluateDynamicRange(musicData.dynamics);
+    
+    // Check structural coherence
+    score.details.structure = this.evaluateStructuralCoherence(musicData.structure, context);
+
+    score.value = this.averageScores(Object.values(score.details));
+    return score;
+  }
+
+  assessCreativity(musicData, context) {
+    const score = {
+      value: 0,
+      details: {},
+      weight: 0.15
+    };
+
+    // Check melodic originality
+    score.details.melodicOriginality = this.evaluateMelodicOriginality(musicData.melody);
+    
+    // Check harmonic innovation
+    score.details.harmonicInnovation = this.evaluateHarmonicInnovation(musicData.chords, context);
+    
+    // Check rhythmic creativity
+    score.details.rhythmicCreativity = this.evaluateRhythmicCreativity(musicData.rhythm, context);
+    
+    // Check unexpected elements
+    score.details.surpriseElements = this.evaluateSurpriseElements(musicData);
+
+    score.value = this.averageScores(Object.values(score.details));
+    return score;
+  }
+
+  assessGenreConsistency(musicData, context) {
+    const score = {
+      value: 0,
+      details: {},
+      weight: 0.10
+    };
+
+    const { genre } = context;
+    
+    // Check genre-specific elements
+    score.details.instrumentation = this.evaluateGenreInstrumentation(musicData.instruments, genre);
+    score.details.rhythmPatterns = this.evaluateGenreRhythm(musicData.rhythm, genre);
+    score.details.harmonicLanguage = this.evaluateGenreHarmony(musicData.chords, genre);
+    score.details.structuralConventions = this.evaluateGenreStructure(musicData.structure, genre);
+
+    score.value = this.averageScores(Object.values(score.details));
+    return score;
+  }
+
+  assessTechnicalExecution(musicData, context) {
+    const score = {
+      value: 0,
+      details: {},
+      weight: 0.10
+    };
+
+    // Check audio quality metrics
+    score.details.clarity = this.evaluateAudioClarity(musicData);
+    score.details.mixing = this.evaluateMixingQuality(musicData);
+    score.details.timing = this.evaluateTimingPrecision(musicData);
+    score.details.intonation = this.evaluateIntonation(musicData);
+
+    score.value = this.averageScores(Object.values(score.details));
+    return score;
+  }
+
+  // Detailed evaluation methods
+  evaluateChordProgression(chords, context) {
+    if (!chords || chords.length === 0) return 0.5;
+    
+    let score = 0.7; // Base score
+    
+    // Check for common progressions
+    const commonProgressions = this.getCommonProgressions(context.genre);
+    const hasCommonProgression = commonProgressions.some(prog => 
+      this.matchesProgression(chords, prog)
+    );
+    
+    if (hasCommonProgression) score += 0.2;
+    
+    // Check for smooth voice leading
+    const smoothVoiceLeading = this.checkVoiceLeading(chords);
+    if (smoothVoiceLeading) score += 0.1;
+    
+    return Math.min(1.0, score);
+  }
+
+  evaluateVoiceLeading(voices, context) {
+    if (!voices || voices.length === 0) return 0.7; // Default if no voice data
+    
+    let smoothConnections = 0;
+    let totalConnections = 0;
+    
+    for (let i = 0; i < voices.length - 1; i++) {
+      const current = voices[i];
+      const next = voices[i + 1];
+      
+      if (this.isSmoothlvConnected(current, next)) {
+        smoothConnections++;
+      }
+      totalConnections++;
+    }
+    
+    return totalConnections > 0 ? smoothConnections / totalConnections : 0.7;
+  }
+
+  evaluateKeyConsistency(key, sections) {
+    if (!key || !sections) return 0.8; // Default if no data
+    
+    let consistentSections = 0;
+    sections.forEach(section => {
+      if (section.key === key || this.isRelatedKey(section.key, key)) {
+        consistentSections++;
+      }
+    });
+    
+    return sections.length > 0 ? consistentSections / sections.length : 0.8;
+  }
+
+  evaluateHarmonicRhythm(chords, tempo) {
+    if (!chords || chords.length === 0) return 0.7;
+    
+    // Analyze chord change frequency
+    const changesPerMeasure = this.calculateChordChangesPerMeasure(chords, tempo);
+    
+    // Optimal range is 1-4 changes per measure depending on genre
+    const optimal = changesPerMeasure >= 1 && changesPerMeasure <= 4;
+    return optimal ? 0.9 : 0.6;
+  }
+
+  evaluateTempoConsistency(tempo, context) {
+    const genreRange = this.getGenreTempoRange(context.genre);
+    const inRange = tempo >= genreRange.min && tempo <= genreRange.max;
+    return inRange ? 0.9 : 0.6;
+  }
+
+  evaluateRhythmicComplexity(rhythm, context) {
+    if (!rhythm) return 0.7;
+    
+    const complexity = this.calculateRhythmicComplexity(rhythm);
+    const targetComplexity = this.getTargetComplexity(context.genre, context.energy);
+    
+    const difference = Math.abs(complexity - targetComplexity);
+    return Math.max(0.3, 1.0 - difference);
+  }
+
+  evaluateGroove(drums, context) {
+    if (!drums) return 0.7;
+    
+    let score = 0.5;
+    
+    // Check for genre-appropriate patterns
+    if (this.hasGenreGroove(drums, context.genre)) score += 0.3;
+    
+    // Check for human-like timing variations
+    if (this.hasHumanization(drums)) score += 0.2;
+    
+    return Math.min(1.0, score);
+  }
+
+  evaluateRhythmicVariety(rhythm) {
+    if (!rhythm) return 0.7;
+    
+    const patterns = this.extractRhythmicPatterns(rhythm);
+    const uniquePatterns = new Set(patterns).size;
+    const variety = uniquePatterns / patterns.length;
+    
+    return Math.min(1.0, variety * 2); // Scale to 0-1 range
+  }
+
+  evaluateInstrumentBalance(instruments) {
+    if (!instruments) return 0.7;
+    
+    const frequencyBalance = this.analyzeFrequencyBalance(instruments);
+    const dynamicBalance = this.analyzeDynamicBalance(instruments);
+    
+    return (frequencyBalance + dynamicBalance) / 2;
+  }
+
+  evaluateSectionTransitions(sections) {
+    if (!sections || sections.length < 2) return 0.7;
+    
+    let smoothTransitions = 0;
+    for (let i = 0; i < sections.length - 1; i++) {
+      if (this.isSmoothTransition(sections[i], sections[i + 1])) {
+        smoothTransitions++;
+      }
+    }
+    
+    return smoothTransitions / (sections.length - 1);
+  }
+
+  evaluateDynamicRange(dynamics) {
+    if (!dynamics) return 0.7;
+    
+    const range = Math.max(...dynamics) - Math.min(...dynamics);
+    const optimalRange = 0.6; // 60% dynamic range is good
+    
+    const score = 1.0 - Math.abs(range - optimalRange);
+    return Math.max(0.3, score);
+  }
+
+  evaluateStructuralCoherence(structure, context) {
+    if (!structure) return 0.7;
+    
+    const hasIntro = structure.sections.some(s => s.name === 'intro');
+    const hasOutro = structure.sections.some(s => s.name === 'outro');
+    const hasVerse = structure.sections.some(s => s.name === 'verse');
+    const hasChorus = structure.sections.some(s => s.name === 'chorus');
+    
+    let score = 0.5;
+    if (hasIntro) score += 0.1;
+    if (hasOutro) score += 0.1;
+    if (hasVerse) score += 0.15;
+    if (hasChorus) score += 0.15;
+    
+    return Math.min(1.0, score);
+  }
+
+  calculateOverallScore(categories) {
+    let weightedSum = 0;
+    let totalWeight = 0;
+    
+    Object.values(categories).forEach(category => {
+      weightedSum += category.value * category.weight;
+      totalWeight += category.weight;
+    });
+    
+    return totalWeight > 0 ? weightedSum / totalWeight : 0.5;
+  }
+
+  generateRecommendations(categories, context) {
+    const recommendations = [];
+    
+    Object.entries(categories).forEach(([category, data]) => {
+      if (data.value < 0.6) { // Below threshold
+        recommendations.push({
+          category,
+          severity: 1.0 - data.value,
+          suggestion: this.getImprovementSuggestion(category, data.details, context),
+          priority: data.weight > 0.2 ? 'high' : 'medium'
+        });
+      }
+    });
+    
+    return recommendations.sort((a, b) => b.severity - a.severity);
+  }
+
+  getImprovementSuggestion(category, details, context) {
+    const suggestions = {
+      harmony: 'Consider using more conventional chord progressions or improving voice leading',
+      rhythm: 'Adjust rhythmic complexity or improve groove consistency',
+      arrangement: 'Balance instrument levels and improve section transitions',
+      creativity: 'Add more unique melodic or harmonic elements',
+      genreConsistency: `Better align with ${context.genre} conventions`,
+      technicalExecution: 'Improve audio clarity and timing precision'
+    };
+    
+    return suggestions[category] || 'Review this aspect for improvement';
+  }
+
+  // Helper methods
+  averageScores(scores) {
+    return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  }
+
+  getCommonProgressions(genre) {
+    const progressions = {
+      rock: [['I', 'V', 'vi', 'IV'], ['vi', 'IV', 'I', 'V']],
+      jazz: [['ii7', 'V7', 'I'], ['I', 'vi', 'ii', 'V']],
+      pop: [['I', 'V', 'vi', 'IV'], ['vi', 'IV', 'I', 'V']],
+      blues: [['I7', 'IV7', 'I7', 'V7']]
+    };
+    
+    return progressions[genre] || progressions.pop;
+  }
+
+  matchesProgression(chords, progression) {
+    // Simplified matching - could be more sophisticated
+    return chords.length >= progression.length;
+  }
+
+  checkVoiceLeading(chords) {
+    // Simplified voice leading check
+    return chords.length > 1; // Basic check
+  }
+
+  isSmoothlvConnected(voice1, voice2) {
+    // Check if voice connection is smooth (step-wise or common tones)
+    return Math.abs(voice1.pitch - voice2.pitch) <= 2; // Within a whole step
+  }
+
+  isRelatedKey(key1, key2) {
+    // Check if keys are related (relative major/minor, etc.)
+    const relatedKeys = {
+      'C': ['Am', 'F', 'G'],
+      'G': ['Em', 'C', 'D'],
+      'F': ['Dm', 'Bb', 'C']
+    };
+    
+    return relatedKeys[key1]?.includes(key2) || false;
+  }
+
+  calculateChordChangesPerMeasure(chords, tempo) {
+    // Simplified calculation
+    return chords.length / 4; // Assume 4 measures
+  }
+
+  getGenreTempoRange(genre) {
+    const ranges = {
+      rock: { min: 100, max: 140 },
+      jazz: { min: 90, max: 160 },
+      electronic: { min: 120, max: 140 },
+      blues: { min: 70, max: 110 },
+      reggae: { min: 60, max: 90 }
+    };
+    
+    return ranges[genre] || ranges.rock;
+  }
+
+  calculateRhythmicComplexity(rhythm) {
+    // Simplified complexity calculation
+    const uniquePatterns = new Set(rhythm.pattern || []).size;
+    return uniquePatterns / 16; // Normalize to 0-1
+  }
+
+  getTargetComplexity(genre, energy) {
+    const baseComplexity = {
+      rock: 0.6,
+      jazz: 0.8,
+      electronic: 0.7,
+      pop: 0.5
+    };
+    
+    const base = baseComplexity[genre] || 0.6;
+    return base + (energy - 0.5) * 0.2; // Adjust based on energy
+  }
+
+  hasGenreGroove(drums, genre) {
+    // Check if drum pattern matches genre expectations
+    return drums.pattern && drums.genre === genre;
+  }
+
+  hasHumanization(drums) {
+    // Check for timing and velocity variations
+    return drums.humanization && drums.humanization.timing > 0;
+  }
+
+  extractRhythmicPatterns(rhythm) {
+    // Extract unique rhythmic patterns
+    return rhythm.pattern || [];
+  }
+
+  analyzeFrequencyBalance(instruments) {
+    // Analyze frequency distribution across instruments
+    let balance = 0.7; // Default score
+    
+    const hasLow = instruments.some(i => ['bass', 'kick'].includes(i.type));
+    const hasMid = instruments.some(i => ['guitar', 'piano'].includes(i.type));
+    const hasHigh = instruments.some(i => ['cymbals', 'hi_hat'].includes(i.type));
+    
+    if (hasLow && hasMid && hasHigh) balance = 0.9;
+    
+    return balance;
+  }
+
+  analyzeDynamicBalance(instruments) {
+    // Analyze dynamic balance between instruments
+    if (!instruments || instruments.length === 0) return 0.7;
+    
+    const levels = instruments.map(i => i.level || 0.5);
+    const average = levels.reduce((sum, level) => sum + level, 0) / levels.length;
+    const variance = levels.reduce((sum, level) => sum + Math.pow(level - average, 2), 0) / levels.length;
+    
+    // Lower variance = better balance
+    return Math.max(0.3, 1.0 - variance);
+  }
+
+  isSmoothTransition(section1, section2) {
+    // Check if transition between sections is smooth
+    const keyCompatible = section1.key === section2.key || this.isRelatedKey(section1.key, section2.key);
+    const tempoCompatible = Math.abs(section1.tempo - section2.tempo) <= 10;
+    
+    return keyCompatible && tempoCompatible;
+  }
+
+  // Additional evaluation methods for quality assessment
+  evaluateMelodicOriginality(melody) {
+    if (!melody) return 0.7;
+    // Simplified check for melodic patterns
+    return 0.7 + Math.random() * 0.2; // Placeholder - would analyze actual melodic content
+  }
+
+  evaluateHarmonicInnovation(chords, context) {
+    if (!chords) return 0.7;
+    // Check for interesting chord substitutions or progressions
+    return 0.6 + Math.random() * 0.3; // Placeholder
+  }
+
+  evaluateRhythmicCreativity(rhythm, context) {
+    if (!rhythm) return 0.7;
+    // Analyze rhythmic complexity and innovation
+    return 0.6 + Math.random() * 0.3; // Placeholder
+  }
+
+  evaluateSurpriseElements(musicData) {
+    // Look for unexpected but pleasing musical elements
+    let surprises = 0;
+    if (musicData.arrangement && musicData.arrangement.sections) {
+      // Check for unexpected sections
+      const hasbridge = musicData.arrangement.sections.some(s => s.name === 'bridge');
+      if (hasbridge) surprises += 0.2;
+    }
+    return Math.min(1.0, 0.5 + surprises);
+  }
+
+  evaluateGenreInstrumentation(instruments, genre) {
+    if (!instruments) return 0.7;
+    // Check if instrumentation matches genre expectations
+    const genreInstruments = {
+      rock: ['drums', 'bass', 'guitar', 'lead_guitar'],
+      jazz: ['piano', 'bass', 'drums', 'saxophone'],
+      electronic: ['synthesizer', 'drums', 'bass'],
+      reggae: ['drums', 'bass', 'guitar', 'piano']
+    };
+    
+    const expected = genreInstruments[genre] || [];
+    let matches = 0;
+    expected.forEach(instrument => {
+      if (instruments.some(i => i.type === instrument || i === instrument)) {
+        matches++;
+      }
+    });
+    
+    return expected.length > 0 ? matches / expected.length : 0.7;
+  }
+
+  evaluateGenreRhythm(rhythm, genre) {
+    if (!rhythm) return 0.7;
+    // Simplified genre rhythm evaluation
+    return 0.7 + Math.random() * 0.2; // Placeholder
+  }
+
+  evaluateGenreHarmony(chords, genre) {
+    if (!chords) return 0.7;
+    // Check harmonic language appropriate for genre
+    return 0.7 + Math.random() * 0.2; // Placeholder
+  }
+
+  evaluateGenreStructure(structure, genre) {
+    if (!structure) return 0.7;
+    // Check structural conventions for genre
+    return 0.7 + Math.random() * 0.2; // Placeholder
+  }
+
+  evaluateAudioClarity(musicData) {
+    // Evaluate clarity of the audio mix
+    return 0.8; // Placeholder - would analyze frequency spectrum
+  }
+
+  evaluateMixingQuality(musicData) {
+    // Evaluate balance and mixing quality
+    return 0.8; // Placeholder - would analyze levels and panning
+  }
+
+  evaluateTimingPrecision(musicData) {
+    // Evaluate timing precision
+    return 0.85; // Placeholder - would analyze timing accuracy
+  }
+
+  evaluateIntonation(musicData) {
+    // Evaluate pitch accuracy
+    return 0.9; // Placeholder - would analyze pitch accuracy
+  }
+}

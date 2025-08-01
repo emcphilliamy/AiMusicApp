@@ -35,6 +35,21 @@ interface SpotifyStatus {
   setupRequired: boolean;
 }
 
+interface AIModel {
+  id: string;
+  name: string;
+  type: 'instrument_focused' | 'holistic' | 'genre_specialist' | 'experimental' | 'basic';
+  description: string;
+  isActive: boolean;
+  createdAt: number;
+  lastUsed: number | null;
+  generationCount: number;
+  successRate: number;
+  averageRating: number;
+  config: any;
+  trainingData?: any;
+}
+
 const AIMusicsCreator: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
@@ -72,6 +87,15 @@ const AIMusicsCreator: React.FC = () => {
   const [trainingMessage, setTrainingMessage] = useState<string>('');
   const [isTraining, setIsTraining] = useState<boolean>(false);
   const [trainingProgress, setTrainingProgress] = useState<string>('');
+  
+  // AI Model Management State
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
+  const [currentModel, setCurrentModel] = useState<AIModel | null>(null);
+  const [isLoadingModels, setIsLoadingModels] = useState<boolean>(false);
+  const [showModelManager, setShowModelManager] = useState<boolean>(false);
+  const [modelError, setModelError] = useState<string>('');
+  const [archivedModels, setArchivedModels] = useState<any[]>([]);
+  const [showArchive, setShowArchive] = useState<boolean>(false);
 
   const audioElementRef = useRef<HTMLAudioElement>(null);
   const sampleAudioRef = useRef<HTMLAudioElement>(null);
@@ -245,6 +269,17 @@ const AIMusicsCreator: React.FC = () => {
       setTrainingProgress(`Processing track ${data.current}/${data.total}: ${data.message}`);
     });
     
+    socket.on('model_training_complete', (data: { modelId: string; success: boolean; result?: any; error?: string }) => {
+      console.log('🤖 Model training completed:', data);
+      if (data.success) {
+        setTrainingMessage(`Model ${data.modelId} training completed successfully!`);
+        // Refresh models list
+        fetchModels();
+      } else {
+        setModelError(`Model training failed: ${data.error}`);
+      }
+    });
+    
     socket.on('training_complete', (data: { success: boolean; tracksAdded: number; message: string }) => {
       console.log('✅ Training complete:', data);
       setIsTraining(false);
@@ -324,10 +359,177 @@ const AIMusicsCreator: React.FC = () => {
     }
   };
 
+  // Model Management Functions
+  const fetchModels = async (): Promise<void> => {
+    try {
+      setIsLoadingModels(true);
+      setModelError('');
+      
+      const response = await fetch('http://localhost:3001/api/models');
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableModels(data.models || []);
+        setCurrentModel(data.currentModel || null);
+        console.log('🤖 Models loaded:', data);
+      } else {
+        throw new Error(`Failed to fetch models: ${response.status}`);
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to fetch models:', error);
+      setModelError(`Failed to load models: ${error.message}`);
+    } finally {
+      setIsLoadingModels(false);
+    }
+  };
+
+  const switchModel = async (modelId: string): Promise<void> => {
+    try {
+      setModelError('');
+      
+      const response = await fetch('http://localhost:3001/api/models/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modelId })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentModel(data.currentModel);
+        console.log('🤖 Switched to model:', data.currentModel.name);
+        setTrainingMessage(`Switched to ${data.currentModel.name}`);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to switch model');
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to switch model:', error);
+      setModelError(`Failed to switch model: ${error.message}`);
+    }
+  };
+
+  const createModel = async (type: string, name: string, description?: string): Promise<void> => {
+    try {
+      setModelError('');
+      
+      const response = await fetch('http://localhost:3001/api/models/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, name, description })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🤖 Model created:', data.model);
+        setTrainingMessage(`Created new ${type} model: ${name}`);
+        // Refresh models list
+        await fetchModels();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create model');
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to create model:', error);
+      setModelError(`Failed to create model: ${error.message}`);
+    }
+  };
+
+  const trainModel = async (modelId: string, genre: string, trackCount: number = 20): Promise<void> => {
+    try {
+      setModelError('');
+      setTrainingMessage(`Starting training for model ${modelId}...`);
+      
+      const response = await fetch(`http://localhost:3001/api/models/${modelId}/train`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ genre, trackCount })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🤖 Model training started:', data);
+        setTrainingMessage(data.message);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to start training');
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to start model training:', error);
+      setModelError(`Failed to start training: ${error.message}`);
+    }
+  };
+
+  const fetchArchivedModels = async (): Promise<void> => {
+    try {
+      const response = await fetch('http://localhost:3001/api/models/archive');
+      if (response.ok) {
+        const data = await response.json();
+        setArchivedModels(data.archivedModels || []);
+        console.log('📦 Archived models loaded:', data);
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to fetch archived models:', error);
+    }
+  };
+
+  const archiveModel = async (modelId: string, archiveName: string): Promise<void> => {
+    try {
+      setModelError('');
+      
+      const response = await fetch(`http://localhost:3001/api/models/${modelId}/archive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archiveName })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📦 Model archived:', data);
+        setTrainingMessage(`Archived: ${data.archiveName}`);
+        // Refresh both active and archived models
+        await fetchModels();
+        await fetchArchivedModels();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to archive model');
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to archive model:', error);
+      setModelError(`Failed to archive model: ${error.message}`);
+    }
+  };
+
+  const restoreArchivedModel = async (archiveId: string): Promise<void> => {
+    try {
+      setModelError('');
+      
+      const response = await fetch(`http://localhost:3001/api/models/archive/${archiveId}/restore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🔄 Model restored:', data);
+        setTrainingMessage(`Restored: ${data.model.name}`);
+        // Refresh both active and archived models
+        await fetchModels();
+        await fetchArchivedModels();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to restore model');
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to restore model:', error);
+      setModelError(`Failed to restore model: ${error.message}`);
+    }
+  };
+
   // Check backend connection on mount and setup intervals
   useEffect(() => {
     checkBackendConnection();
     checkSpotifyStatus();
+    fetchModels();
+    fetchArchivedModels();
     
     // Check for Spotify callback parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -784,6 +986,208 @@ const AIMusicsCreator: React.FC = () => {
                 )}
               </>
             )}
+          </div>
+          
+          {/* AI Model Selector */}
+          <div className="mb-4 mx-auto max-w-4xl">
+            <div className="bg-gradient-to-r from-indigo-600/40 to-purple-600/40 border-2 border-indigo-400/50 rounded-xl p-4 backdrop-blur-sm shadow-lg">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-400 rounded-full mr-3 animate-pulse"></div>
+                  <h3 className="text-lg font-semibold text-indigo-200">🤖 AI Generation Model</h3>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowModelManager(!showModelManager)}
+                    className="px-3 py-1 bg-indigo-600/20 text-indigo-300 rounded-full hover:bg-indigo-600/30 transition-colors border border-indigo-600/30 text-sm"
+                  >
+                    {showModelManager ? 'Hide' : 'Manage Models'}
+                  </button>
+                  <button
+                    onClick={() => setShowArchive(!showArchive)}
+                    className="px-3 py-1 bg-purple-600/20 text-purple-300 rounded-full hover:bg-purple-600/30 transition-colors border border-purple-600/30 text-sm"
+                  >
+                    Archive ({archivedModels.length})
+                  </button>
+                </div>
+              </div>
+              
+              {currentModel && (
+                <div className="flex items-center justify-between bg-black/20 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <div className="text-sm text-indigo-300">Current:</div>
+                    <div className="ml-2 font-semibold text-white">{currentModel.name}</div>
+                    <div className="ml-2 px-2 py-1 bg-indigo-600/30 text-indigo-200 rounded text-xs">
+                      {currentModel.type.replace('_', ' ')}
+                    </div>
+                  </div>
+                  <div className="text-xs text-indigo-400">
+                    {currentModel.generationCount} generations • {(currentModel.successRate * 100).toFixed(1)}% success
+                  </div>
+                </div>
+              )}
+              
+              {showModelManager && (
+                <div className="mt-4 space-y-3">
+                  {isLoadingModels ? (
+                    <div className="text-center py-4">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                      <div className="text-sm text-indigo-300">Loading models...</div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Quick Create Buttons */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <button
+                          onClick={() => createModel('instrument_focused', `Instrument Focus ${Date.now()}`)}
+                          className="px-3 py-1 bg-green-600/20 text-green-300 rounded hover:bg-green-600/30 transition-colors text-sm"
+                        >
+                          + Instrument Focused
+                        </button>
+                        <button
+                          onClick={() => createModel('holistic', `Holistic ${Date.now()}`)}
+                          className="px-3 py-1 bg-blue-600/20 text-blue-300 rounded hover:bg-blue-600/30 transition-colors text-sm"
+                        >
+                          + Holistic
+                        </button>
+                        <button
+                          onClick={() => createModel('genre_specialist', `Genre Specialist ${Date.now()}`)}
+                          className="px-3 py-1 bg-purple-600/20 text-purple-300 rounded hover:bg-purple-600/30 transition-colors text-sm"
+                        >
+                          + Genre Specialist
+                        </button>
+                        <button
+                          onClick={() => createModel('experimental', `Experimental ${Date.now()}`)}
+                          className="px-3 py-1 bg-orange-600/20 text-orange-300 rounded hover:bg-orange-600/30 transition-colors text-sm"
+                        >
+                          + Experimental
+                        </button>
+                      </div>
+                      
+                      {/* Models List */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                        {availableModels.map(model => (
+                          <div
+                            key={model.id}
+                            className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                              currentModel?.id === model.id
+                                ? 'bg-indigo-600/30 border-indigo-400/50 shadow-lg'
+                                : 'bg-black/20 border-gray-600/30 hover:bg-black/30'
+                            }`}
+                            onClick={() => switchModel(model.id)}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="font-medium text-sm text-white">{model.name}</div>
+                              <div className="flex items-center space-x-1">
+                                {currentModel?.id === model.id && (
+                                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                )}
+                                <div className="px-2 py-0.5 bg-gray-600/30 text-gray-300 rounded text-xs">
+                                  {model.type.replace('_', ' ')}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-400 mb-2">{model.description}</div>
+                            <div className="text-xs text-gray-500 flex justify-between">
+                              <span>{model.generationCount} uses</span>
+                              <span>{(model.successRate * 100).toFixed(0)}% success</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  
+                  {modelError && (
+                    <div className="text-red-400 text-sm bg-red-900/20 border border-red-600/30 rounded p-2">
+                      ⚠️ {modelError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Archive Management */}
+              {showArchive && (
+                <div className="mt-4 space-y-3">
+                  <div className="border-t border-indigo-600/30 pt-3">
+                    <h4 className="text-sm font-semibold text-purple-200 mb-3">📦 Model Archive ({archivedModels.length})</h4>
+                    
+                    {/* Archive Current Model */}
+                    {currentModel && (
+                      <div className="mb-4 p-3 bg-purple-600/20 rounded-lg border border-purple-600/30">
+                        <div className="text-sm text-purple-200 mb-2">Complete Development & Archive Current Model:</div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder={`Archive name for "${currentModel.name}"`}
+                            className="flex-1 px-3 py-1 bg-black/30 border border-purple-600/30 rounded text-white text-sm"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const input = e.target as HTMLInputElement;
+                                if (input.value.trim()) {
+                                  archiveModel(currentModel.id, input.value.trim());
+                                  input.value = '';
+                                }
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={(e) => {
+                              const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                              if (input.value.trim()) {
+                                archiveModel(currentModel.id, input.value.trim());
+                                input.value = '';
+                              }
+                            }}
+                            className="px-3 py-1 bg-purple-600/30 text-purple-200 rounded hover:bg-purple-600/40 transition-colors text-sm"
+                          >
+                            📦 Archive
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Archived Models List */}
+                    {archivedModels.length === 0 ? (
+                      <div className="text-center py-4 text-purple-400 text-sm">
+                        No archived models yet. Complete development and archive your current model to start building your AI collection.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                        {archivedModels.map(archive => (
+                          <div
+                            key={archive.archiveId}
+                            className="p-3 rounded-lg border bg-purple-900/20 border-purple-600/30 hover:bg-purple-900/30 transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="font-medium text-sm text-white">{archive.name}</div>
+                              <div className="px-2 py-0.5 bg-purple-600/30 text-purple-200 rounded text-xs">
+                                {archive.type.replace('_', ' ')}
+                              </div>
+                            </div>
+                            <div className="text-xs text-purple-400 mb-2">{archive.description}</div>
+                            <div className="text-xs text-purple-500 mb-3">
+                              Archived: {new Date(archive.archivedAt).toLocaleDateString()}
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <div className="text-xs text-purple-500">
+                                {archive.finalStats?.generationsCount || 0} generations
+                              </div>
+                              <button
+                                onClick={() => restoreArchivedModel(archive.archiveId)}
+                                className="px-2 py-1 bg-green-600/20 text-green-300 rounded hover:bg-green-600/30 transition-colors text-xs"
+                              >
+                                🔄 Restore
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
           {connectionError && (

@@ -1,0 +1,25 @@
+
+> ai-music-creator-backend@1.0.0 start
+> node server.js
+
+[dotenv@17.2.1] injecting env (8) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+📁 Loaded model: Creative Fusion AI
+📁 Loaded model: Reggae Specialist AI
+📁 Loaded model: Rock Specialist AI
+📁 Loaded model: Balanced Generation AI
+📁 Loaded model: Professional Instrument AI
+🧠 Loaded 5 saved models
+🎯 Set default active model: Creative Fusion AI
+🔍 Spotify credential check:
+  - CLIENT_ID: 1af28e67...
+  - CLIENT_SECRET: 4d272c36...
+  - CONFIGURED: true
+🎵 Reggae AI Music Creator backend running on http://localhost:3001
+📁 Upload directory: /Users/ewanmcphilliamy/Documents/SunoLikeAppByCluade/ai-music-creator/backend/uploads
+🎼 Generated music directory: /Users/ewanmcphilliamy/Documents/SunoLikeAppByCluade/ai-music-creator/backend/generated
+🔌 WebSocket server ready for real-time updates
+🚀 Features: Reggae-focused generation, Spotify training, Dual similarity checks
+⚠️ No training data found - connect to Spotify for automatic training
+💡 Audio features require user authentication, not just client credentials
+⚠️ Active model [object Object] not found, resetting...
+🧠 Auto-selected model as active: Creative Fusion AI
