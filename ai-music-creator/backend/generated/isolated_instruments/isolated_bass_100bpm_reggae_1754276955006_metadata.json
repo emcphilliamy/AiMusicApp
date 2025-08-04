@@ -1,0 +1,15 @@
+{
+  "instrument": "bass",
+  "duration": 10,
+  "tempo": 100,
+  "key": "C",
+  "style": "reggae",
+  "genre": "world",
+  "timestamp": "2025-08-04T03:09:15.008Z",
+  "filename": "isolated_bass_100bpm_reggae_1754276955006.wav",
+  "sampleRate": 44100,
+  "channels": 1,
+  "bitDepth": 16,
+  "generatedBy": "UniversalInstrumentSynthesis",
+  "version": "1.0.0"
+}

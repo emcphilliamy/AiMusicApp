@@ -1,0 +1,15 @@
+{
+  "instrument": "vocals",
+  "duration": 10,
+  "tempo": 100,
+  "key": "C",
+  "style": "reggae",
+  "genre": "world",
+  "timestamp": "2025-08-04T03:09:32.606Z",
+  "filename": "isolated_vocals_100bpm_reggae_1754276972605.wav",
+  "sampleRate": 44100,
+  "channels": 1,
+  "bitDepth": 16,
+  "generatedBy": "UniversalInstrumentSynthesis",
+  "version": "1.0.0"
+}

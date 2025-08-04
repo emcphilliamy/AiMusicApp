@@ -4,18 +4,18 @@
   "type": "instrument_focused",
   "description": "AI model specialized in detailed instrument layering and arrangement",
   "created": "2025-07-31T22:02:10.514Z",
-  "lastUsed": null,
+  "lastUsed": "2025-08-04T20:21:00.598Z",
   "stats": {
-    "generationsCount": 0,
+    "generationsCount": 2,
     "averageRating": 0,
     "totalRatings": 0,
     "genres": {
-      "pop": 20,
+      "pop": 22,
       "jazz": 20
     },
     "performance": {
       "avgGenerationTime": 0,
-      "successRate": 0
+      "successRate": 1.5
     }
   },
   "config": {
@@ -597,6 +597,270 @@
         },
         "timestamp": 1754005797926,
         "modelType": "instrument_focused"
+      },
+      {
+        "id": "drum_realism_1754325199308_0",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.955802760299608,
+            "layering": 0.11932821930672727,
+            "dynamics": 0.8144602595179014
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_1",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9570391656818936,
+            "layering": 0.10444528152755712,
+            "dynamics": 0.8857599797363509
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_2",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9502881908757534,
+            "layering": 0.11552937382312685,
+            "dynamics": 0.9103088538668009
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_3",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.99895941802234,
+            "layering": 0.19234582912066514,
+            "dynamics": 0.9900197720105823
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_4",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9783119771552671,
+            "layering": 0.17234560078812156,
+            "dynamics": 0.8772092650711798
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_5",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9712446315012278,
+            "layering": 0.19303971381026142,
+            "dynamics": 0.8362660568675591
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_6",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9899666312358336,
+            "layering": 0.1191373684543732,
+            "dynamics": 0.9220974296405322
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_7",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9638198609104274,
+            "layering": 0.14684081884931935,
+            "dynamics": 0.9384810805702912
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_8",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.983176454516574,
+            "layering": 0.1358172686387272,
+            "dynamics": 0.8824996616652162
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "drum_realism_1754325199308_9",
+        "source": "retraining_session",
+        "genre": "drum_focused",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9985674964848112,
+            "layering": 0.17092677525393207,
+            "dynamics": 0.9542859204363573
+          },
+          "drumCharacteristics": {
+            "punchiness": 0.9,
+            "realism": 0.95,
+            "avoidPianoLike": true,
+            "physicalModeling": true
+          }
+        },
+        "timestamp": 1754325199308,
+        "modelType": "instrument_focused",
+        "trainingFocus": "drum_realism"
+      },
+      {
+        "id": "isolated_drums_1754338788247",
+        "source": "isolated_generation",
+        "genre": "isolated_drums",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "drums",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754338788247,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_lead_guitar_1754338817246",
+        "source": "isolated_generation",
+        "genre": "isolated_lead_guitar",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "lead_guitar",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754338817246,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_piano_1754338844152",
+        "source": "isolated_generation",
+        "genre": "isolated_piano",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "piano",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754338844152,
+        "modelType": "instrument_focused"
       }
     ],
     "patterns": {
@@ -621,9 +885,61 @@
           "C": 20
         },
         "energy_profile": 0.5
+      },
+      "drum_focused": {
+        "tempo_range": {
+          "min": 60,
+          "max": 180,
+          "avg": 120
+        },
+        "common_keys": {
+          "C": 5,
+          "D": 3,
+          "E": 2
+        },
+        "energy_profile": 0.9,
+        "characteristics": {
+          "realism": 0.95,
+          "punchiness": 0.9,
+          "separation": 0.95
+        }
+      },
+      "isolated_drums": {
+        "tempo_range": {
+          "min": 120,
+          "max": 120,
+          "avg": 120
+        },
+        "common_keys": {
+          "C": 1
+        },
+        "energy_profile": 0.8
+      },
+      "isolated_lead_guitar": {
+        "tempo_range": {
+          "min": 120,
+          "max": 120,
+          "avg": 120
+        },
+        "common_keys": {
+          "C": 1
+        },
+        "energy_profile": 0.8
+      },
+      "isolated_piano": {
+        "tempo_range": {
+          "min": 120,
+          "max": 120,
+          "avg": 120
+        },
+        "common_keys": {
+          "C": 1
+        },
+        "energy_profile": 0.8
       }
     },
     "weights": {},
-    "lastTrained": "2025-07-31T23:49:57.926Z"
-  }
+    "lastTrained": "2025-08-04T16:33:19.308Z"
+  },
+  "isActive": true
 }

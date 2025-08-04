@@ -20,6 +20,11 @@ const { DirectPatternTrainer } = require('./direct-pattern-trainer');
 // Import wavefile for reggae audio synthesis
 const { WaveFile } = require('wavefile');
 
+// Import isolated instrument generation system
+const { IsolatedAudioGenerator } = require('./generate-isolated-audio');
+
+// ModelManager and IsolatedAudioGenerator will be initialized after class definitions
+
 // Fallback class definitions for when multi-ai-classes.js is not available
 let PromptAnalyzer, InstrumentSelector, MusicalKnowledgeBase;
 
@@ -120,7 +125,14 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
-app.use('/generated', express.static('generated'));
+app.use('/generated', express.static('generated', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.wav')) {
+      res.setHeader('Content-Type', 'audio/wav');
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 app.use('/cache', express.static('cache'));
 
 // Create directories if they don't exist
@@ -290,6 +302,7 @@ class ModelManager {
       description: description,
       created: new Date().toISOString(),
       lastUsed: null,
+      isActive: false, // Models start as inactive
       stats: {
         generationsCount: 0,
         averageRating: 0,
@@ -394,10 +407,15 @@ class ModelManager {
   setActiveModel(modelId) {
     const model = this.models.get(modelId);
     if (model) {
+      // Mark all models as inactive first
+      this.models.forEach(m => m.isActive = false);
+      
+      // Set this model as active
       this.activeModel = model;
+      model.isActive = true;
       model.lastUsed = new Date().toISOString();
       this.saveModel(model);
-      console.log(`🎯 Switched to model: ${model.name} (${model.type})`);
+      console.log(`🎯 Switched to model: ${model.name} (${model.type}) - marked as active`);
       return model;
     }
     throw new Error(`Model ${modelId} not found`);
@@ -622,8 +640,8 @@ class ModelManager {
       // Set default active model if none exists
       if (this.models.size > 0 && !this.activeModel) {
         const models = this.listModels();
-        this.activeModel = models[0];
-        console.log(`🎯 Set default active model: ${this.activeModel.name}`);
+        this.setActiveModel(models[0].id);
+        console.log(`🎯 Set default active model: ${models[0].name}`);
       }
     } catch (error) {
       console.log(`📁 No saved models directory found, starting fresh`);
@@ -741,10 +759,15 @@ class ModelManager {
   // Set active model
   setActiveModel(modelId) {
     if (this.models.has(modelId)) {
+      // Mark all models as inactive first
+      this.models.forEach(model => model.isActive = false);
+      
+      // Set this model as active
       this.activeModel = modelId;
       const model = this.models.get(modelId);
+      model.isActive = true;
       model.lastUsed = new Date().toISOString();
-      console.log(`🧠 Switched to model: ${model.name} (${modelId})`);
+      console.log(`🧠 Switched to model: ${model.name} (${modelId}) - marked as active`);
       return true;
     }
     console.warn(`⚠️ Attempted to set non-existent model as active: ${modelId}`);
@@ -1574,8 +1597,9 @@ class MasterConductorAI {
   }
 }
 
-// Initialize model manager
+// Initialize ModelManager and IsolatedAudioGenerator after class definitions
 const modelManager = new ModelManager();
+const isolatedGenerator = new IsolatedAudioGenerator(modelManager);
 
 // Initialize models and ensure they have training data
 const initializeModels = async () => {
@@ -5125,6 +5149,109 @@ app.post('/api/upload', upload.single('audio'), (req, res) => {
   });
 });
 
+// Helper function to detect isolated instrument requests
+function detectIsolatedInstrumentRequest(prompt) {
+  if (!prompt || typeof prompt !== 'string') {
+    return { isIsolated: false };
+  }
+  
+  const lowercasePrompt = prompt.toLowerCase();
+  const isolatedKeywords = ['isolated', 'solo', 'only', 'just', 'pure', 'single', 'alone', 'standalone'];
+  const instrumentList = ['drums', 'bass', 'lead_guitar', 'rhythm_guitar', 'piano', 'strings', 'synthesizer'];
+  
+  // Check for isolated keywords
+  const hasIsolatedKeyword = isolatedKeywords.some(keyword => lowercasePrompt.includes(keyword));
+  
+  if (!hasIsolatedKeyword) {
+    return { isIsolated: false };
+  }
+  
+  // Find which instrument is requested
+  for (const instrument of instrumentList) {
+    const instrumentVariations = [
+      instrument.replace('_', ' '), // lead_guitar -> lead guitar
+      instrument.replace('_', ''),  // lead_guitar -> leadguitar
+      instrument.split('_')[0],     // lead_guitar -> lead
+      instrument === 'synthesizer' ? 'synth' : instrument,
+      instrument === 'lead_guitar' ? 'guitar' : instrument,
+      instrument === 'rhythm_guitar' ? 'guitar' : instrument,
+      instrument === 'drums' ? 'drum' : instrument, // Handle singular form
+      instrument === 'strings' ? 'string' : instrument // Handle singular form
+    ];
+    
+    for (const variation of instrumentVariations) {
+      if (lowercasePrompt.includes(variation)) {
+        console.log(`🎵 Detected isolated request: "${variation}" -> ${instrument}`);
+        return {
+          isIsolated: true,
+          instrument: instrument,
+          keywords: isolatedKeywords.filter(k => lowercasePrompt.includes(k)),
+          originalPrompt: prompt
+        };
+      }
+    }
+  }
+  
+  return { isIsolated: false };
+}
+
+// Helper function to handle isolated instrument generation
+async function handleIsolatedInstrumentGeneration(req, res, isolatedRequest) {
+  const { tempo, key, duration } = req.body;
+  const { instrument, originalPrompt } = isolatedRequest;
+  
+  try {
+    console.log(`🎵 Generating isolated ${instrument} track...`);
+    
+    // Create context for isolated generation
+    const context = {
+      duration: duration || 8,
+      tempo: tempo || 120,
+      key: key || 'C',
+      style: 'isolated',
+      instrument: instrument,
+      prompt: originalPrompt
+    };
+    
+    // Generate the isolated instrument
+    const audioData = await isolatedGenerator.generateInstrumentAudio(instrument, context);
+    
+    // Save the isolated track and get the actual file path
+    const actualFilePath = await isolatedGenerator.saveIsolatedTrack(audioData, instrument, context);
+    
+    // Return success response
+    const response = {
+      success: true,
+      message: `Isolated ${instrument} track generated successfully`,
+      type: 'isolated_instrument',
+      instrument: instrument,
+      filePath: actualFilePath,
+      fileName: path.basename(actualFilePath),
+      url: `/generated/${path.basename(actualFilePath)}`,
+      track: {
+        name: `Isolated ${instrument.replace('_', ' ')} - ${context.tempo} BPM`
+      },
+      context: context,
+      duration: context.duration,
+      tempo: context.tempo,
+      key: context.key
+    };
+    
+    console.log(`✅ Isolated ${instrument} generation completed: ${path.basename(actualFilePath)}`);
+    return res.json(response);
+    
+  } catch (error) {
+    console.error(`❌ Isolated ${instrument} generation failed:`, error.message);
+    return res.status(500).json({
+      success: false,
+      error: `Failed to generate isolated ${instrument}`,
+      details: error.message,
+      type: 'isolated_instrument_error',
+      instrument: instrument
+    });
+  }
+}
+
 app.post('/api/generate', async (req, res) => {
   // Check if user is connected to Spotify (allow generation if training data exists or fallback patterns available)
   const userStatus = spotifyAPI.getUserStatus();
@@ -5132,17 +5259,27 @@ app.post('/api/generate', async (req, res) => {
   const { prompt, tempo, key, duration, genre: requestedGenre } = req.body;
   const genre = requestedGenre || 'reggae';
   
-  // Allow generation with fallback patterns if no training data
-  let useTrainingData = true;
-  if (!userStatus.connected && trainingStats.trackCount === 0) {
-    console.log(`⚠️ No Spotify connection or training data - using built-in ${genre} patterns`);
-    useTrainingData = false;
+  // Check if this is an isolated instrument request
+  const isolatedRequest = detectIsolatedInstrumentRequest(prompt);
+  if (isolatedRequest.isIsolated) {
+    console.log(`🎵 Isolated instrument request detected: ${isolatedRequest.instrument}`);
+    return await handleIsolatedInstrumentGeneration(req, res, isolatedRequest);
+  }
+  
+  // Check if we have a trained AI model available
+  const currentModel = modelManager.getCurrentModel();
+  const hasTrainedModel = currentModel && currentModel.trainingData && currentModel.trainingData.samples.length > 0;
+  
+  // Allow generation with trained AI model or fallback patterns
+  if (!userStatus.connected && trainingStats.trackCount === 0 && !hasTrainedModel) {
+    console.log(`⚠️ No Spotify connection, no training data, and no trained AI model - using built-in ${genre} patterns`);
+  } else if (hasTrainedModel) {
+    console.log(`✅ Using trained AI model: ${currentModel.name} with ${currentModel.trainingData.samples.length} samples`);
   }
 
-  // If model is still training, use fallback patterns
-  if (trainingStats.trackCount === 0 && reggaeTraining.isTraining) {
-    console.log(`🎓 Model still training - using built-in ${genre} patterns`);
-    useTrainingData = false;
+  // If model is still training, use fallback patterns (but allow trained AI models)
+  if (trainingStats.trackCount === 0 && reggaeTraining.isTraining && !hasTrainedModel) {
+    console.log(`🎓 Model still training and no trained AI model - using built-in ${genre} patterns`);
   }
   
   // Respect user tempo selection with genre-appropriate clamping
@@ -5155,9 +5292,6 @@ app.post('/api/generate', async (req, res) => {
   
   // Respect user key selection
   const selectedKey = key || 'C';
-  
-  // Get current model and use its generation approach
-  const currentModel = modelManager.getCurrentModel();
   console.log(`🎵 Generating ${genre} music with model: ${currentModel.name} (${currentModel.type}) | Trained tracks: ${trainingStats.trackCount} | "${prompt}" | Tempo: ${adjustedTempo} | Key: ${selectedKey}`);
   
   // Debug: Check if reggae enhancements should be triggered
@@ -7897,9 +8031,15 @@ class QualityAssessmentAI {
     // Analyze frequency distribution across instruments
     let balance = 0.7; // Default score
     
-    const hasLow = instruments.some(i => ['bass', 'kick'].includes(i.type));
-    const hasMid = instruments.some(i => ['guitar', 'piano'].includes(i.type));
-    const hasHigh = instruments.some(i => ['cymbals', 'hi_hat'].includes(i.type));
+    // Ensure instruments is an array
+    if (!Array.isArray(instruments)) {
+      console.warn('⚠️ instruments is not an array:', typeof instruments);
+      return balance;
+    }
+    
+    const hasLow = instruments.some(i => ['bass', 'kick'].includes(i.type || i));
+    const hasMid = instruments.some(i => ['guitar', 'piano'].includes(i.type || i));
+    const hasHigh = instruments.some(i => ['cymbals', 'hi_hat'].includes(i.type || i));
     
     if (hasLow && hasMid && hasHigh) balance = 0.9;
     
@@ -7908,7 +8048,7 @@ class QualityAssessmentAI {
 
   analyzeDynamicBalance(instruments) {
     // Analyze dynamic balance between instruments
-    if (!instruments || instruments.length === 0) return 0.7;
+    if (!Array.isArray(instruments) || instruments.length === 0) return 0.7;
     
     const levels = instruments.map(i => i.level || 0.5);
     const average = levels.reduce((sum, level) => sum + level, 0) / levels.length;
@@ -7957,7 +8097,7 @@ class QualityAssessmentAI {
   }
 
   evaluateGenreInstrumentation(instruments, genre) {
-    if (!instruments) return 0.7;
+    if (!Array.isArray(instruments)) return 0.7;
     // Check if instrumentation matches genre expectations
     const genreInstruments = {
       rock: ['drums', 'bass', 'guitar', 'lead_guitar'],
