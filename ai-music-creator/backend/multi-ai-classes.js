@@ -197,7 +197,7 @@ class InstrumentSelector {
       electronic: ['synthesizer', 'drums', 'bass', 'vocals'],
       classical: ['strings', 'piano', 'woodwinds', 'brass'],
       pop: ['drums', 'bass', 'piano', 'guitar', 'vocals', 'synthesizer'],
-      reggae: ['drums', 'bass', 'rhythm_guitar', 'piano', 'vocals'],
+      reggae: ['drums'], // Isolated drum beat generation only
       blues: ['guitar', 'bass', 'drums', 'harmonica', 'vocals'],
       country: ['guitar', 'bass', 'drums', 'fiddle', 'vocals']
     };

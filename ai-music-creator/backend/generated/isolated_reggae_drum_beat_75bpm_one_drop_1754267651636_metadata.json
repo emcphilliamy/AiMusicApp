@@ -1,0 +1,13 @@
+{
+  "name": "isolated_reggae_drum_beat",
+  "tempo": 75,
+  "style": "one_drop",
+  "duration": 8,
+  "timestamp": "2025-08-04T00:34:11.639Z",
+  "filename": "isolated_reggae_drum_beat_75bpm_one_drop_1754267651636.wav",
+  "sampleRate": 44100,
+  "channels": 1,
+  "bitDepth": 16,
+  "generatedBy": "RealisticDrumSynthesis",
+  "version": "1.0.0"
+}
