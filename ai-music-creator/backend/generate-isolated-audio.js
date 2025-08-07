@@ -2,6 +2,7 @@
 // Simplified robust version focused on generating clean isolated instrument tracks
 
 const { RealisticDrumSynthesis } = require('./realistic-drum-synthesis');
+const { PromptAnalyzer } = require('./prompt-analyzer');
 const { WaveFile } = require('wavefile');
 const fs = require('fs');
 const path = require('path');
@@ -10,6 +11,7 @@ class IsolatedAudioGenerator {
     constructor(modelManager = null) {
         this.sampleRate = 44100;
         this.drumSynthesis = new RealisticDrumSynthesis();
+        this.promptAnalyzer = new PromptAnalyzer();
         this.modelManager = modelManager;
         
         // All instruments from the codebase - connected to Professional Instrument AI
@@ -86,27 +88,77 @@ class IsolatedAudioGenerator {
         const duration = context.duration;
         const samples = duration * this.sampleRate;
         
+        // Use the enhanced style analysis if available, otherwise fall back to prompt analyzer
+        let enhancedContext;
+        
+        if (context.descriptors && context.descriptors.length > 0) {
+            // Use the new detailed style analysis from detectIsolatedInstrumentRequest
+            console.log(`🎵 Using enhanced style analysis for ${instrument}:`, context.descriptors);
+            enhancedContext = {
+                ...context,
+                // Map our style analysis to the expected format
+                styleModifiers: {
+                    energy: context.energy || 0.6,
+                    dynamics: context.dynamics || 0.6,
+                    brightness: context.texture === 'bright' ? 0.8 : context.texture === 'dark' ? 0.3 : 0.6,
+                    complexity: context.rhythm === 'polyrhythmic' ? 0.9 : context.rhythm === 'simple' ? 0.3 : 0.6,
+                    groove: context.rhythm === 'driving' ? 0.9 : context.rhythm === 'shuffled' ? 0.8 : 0.6
+                },
+                // Apply tempo modifications based on energy
+                tempo: context.energy > 0.8 ? Math.round(context.tempo * 1.2) : 
+                      context.energy < 0.4 ? Math.round(context.tempo * 0.8) : context.tempo,
+                // Add rhythm-specific parameters
+                rhythmStyle: context.rhythm || 'straight',
+                textureStyle: context.texture || 'clean'
+            };
+        } else {
+            // Fallback to old prompt analyzer
+            const promptAnalysis = this.promptAnalyzer.analyzePrompt(context.prompt || '');
+            const instrumentAdjustments = this.promptAnalyzer.getInstrumentAdjustments(instrument, promptAnalysis);
+            
+            enhancedContext = {
+                ...context,
+                promptAnalysis: instrumentAdjustments,
+                tempo: Math.round(context.tempo * instrumentAdjustments.tempoModifier),
+                styleModifiers: {
+                    energy: instrumentAdjustments.energy,
+                    groove: instrumentAdjustments.groove,
+                    brightness: instrumentAdjustments.brightness,
+                    complexity: instrumentAdjustments.complexity,
+                    dynamics: instrumentAdjustments.dynamics
+                }
+            };
+        }
+        
+        console.log(`🎵 Enhanced generation for ${instrument}:`, {
+            originalTempo: context.tempo,
+            adjustedTempo: enhancedContext.tempo,
+            energy: enhancedContext.styleModifiers.energy.toFixed(2),
+            groove: enhancedContext.styleModifiers.groove.toFixed(2),
+            descriptors: enhancedContext.descriptors || (enhancedContext.promptAnalysis ? enhancedContext.promptAnalysis.descriptors.map(d => d.descriptor) : [])
+        });
+        
         switch (instrument) {
             case 'drums':
-                return this.generateDrumAudio(context);
+                return this.generateDrumAudio(enhancedContext);
                 
             case 'bass':
-                return this.generateBassAudio(samples, context);
+                return this.generateBassAudio(samples, enhancedContext);
                 
             case 'lead_guitar':
-                return this.generateLeadGuitarAudio(samples, context);
+                return this.generateLeadGuitarAudio(samples, enhancedContext);
                 
             case 'rhythm_guitar':
-                return this.generateRhythmGuitarAudio(samples, context);
+                return this.generateRhythmGuitarAudio(samples, enhancedContext);
                 
             case 'piano':
-                return this.generatePianoAudio(samples, context);
+                return this.generatePianoAudio(samples, enhancedContext);
                 
             case 'strings':
-                return this.generateStringsAudio(samples, context);
+                return this.generateStringsAudio(samples, enhancedContext);
                 
             case 'synthesizer':
-                return this.generateSynthAudio(samples, context);
+                return this.generateSynthAudio(samples, enhancedContext);
                 
             default:
                 throw new Error(`Unknown instrument: ${instrument}`);
@@ -126,20 +178,33 @@ class IsolatedAudioGenerator {
     }
 
     generateDynamicDrumPattern(context) {
-        const { tempo, key, style, duration } = context;
+        const { tempo, key, style, duration, styleModifiers } = context;
         const beatsPerSecond = tempo / 60;
         const totalBeats = Math.max(16, Math.floor(duration * beatsPerSecond));
         
         console.log(`🎼 Generating drum pattern: ${totalBeats} beats at ${tempo} BPM`);
         
-        // Use trained model data to influence pattern generation if available
+        // Use style modifiers to influence pattern selection
         let patternStyle = 'modern';
-        if (this.hasTrainedData && this.trainedModel.trainingData.patterns) {
+        
+        if (styleModifiers) {
+            console.log('🎨 Applying prompt-based style modifiers to drum pattern');
+            
+            // Select pattern based on energy and groove levels
+            if (styleModifiers.energy > 0.8) {
+                patternStyle = styleModifiers.groove > 0.7 ? 'uptempo_funky' : 'uptempo_modern';
+            } else if (styleModifiers.energy > 0.6) {
+                patternStyle = styleModifiers.groove > 0.7 ? 'rock_steady' : 'modern_balanced';
+            } else if (styleModifiers.energy > 0.4) {
+                patternStyle = styleModifiers.groove > 0.6 ? 'reggae_steppers' : 'moderate_steady';
+            } else {
+                patternStyle = styleModifiers.groove > 0.5 ? 'reggae_one_drop' : 'mellow_simple';
+            }
+        } else if (this.hasTrainedData && this.trainedModel.trainingData.patterns) {
             console.log('🧠 Using Professional Instrument AI trained patterns for enhanced generation');
-            // Enhanced pattern selection based on trained model
             patternStyle = this.selectTrainedPatternStyle(tempo, context);
         } else {
-            // Fallback to built-in pattern selection
+            // Fallback to tempo-based selection
             if (tempo < 80) {
                 patternStyle = 'reggae_one_drop';
             } else if (tempo < 100) {
@@ -246,6 +311,42 @@ class IsolatedAudioGenerator {
                     if (beatInBar % 4 === 0) {
                         hit = 0.8;
                     } else if (beatInBar % 8 === 6) {
+                        hit = 0.6;
+                    }
+                    break;
+                    
+                case 'uptempo_funky':
+                    // Funky uptempo with syncopation
+                    if (beatInBar % 4 === 0) {
+                        hit = 0.85;
+                    } else if (beatInBar % 8 === 3 || beatInBar % 8 === 7) {
+                        hit = 0.7; // Syncopated kicks
+                    } else if (beatInBar % 8 === 6) {
+                        hit = 0.5;
+                    }
+                    break;
+                    
+                case 'modern_balanced':
+                    // Balanced modern pattern
+                    if (beatInBar === 0 || beatInBar === 8) {
+                        hit = 0.8;
+                    } else if (beatInBar === 4 || beatInBar === 12) {
+                        hit = 0.65;
+                    }
+                    break;
+                    
+                case 'moderate_steady':
+                    // Moderate and steady
+                    if (beatInBar % 8 === 0) {
+                        hit = 0.75;
+                    } else if (beatInBar % 8 === 4) {
+                        hit = 0.6;
+                    }
+                    break;
+                    
+                case 'mellow_simple':
+                    // Simple mellow pattern
+                    if (beatInBar === 0 || beatInBar === 8) {
                         hit = 0.6;
                     }
                     break;
@@ -388,21 +489,110 @@ class IsolatedAudioGenerator {
     }
 
     generateBassAudio(samples, context) {
-        console.log('🎸 Generating bass with string modeling...');
+        console.log('🎸 Generating bass with style-responsive modeling...');
         const bassTrack = new Float32Array(samples);
         
-        // Generate bass line: Root notes every 2 beats
+        // Get style modifiers from enhanced analysis
+        const styleModifiers = context.styleModifiers || {};
+        const descriptors = context.descriptors || [];
+        const rhythmStyle = context.rhythmStyle || 'straight';
+        const textureStyle = context.textureStyle || 'clean';
+        
+        console.log(`🎸 Bass style analysis: energy=${styleModifiers.energy.toFixed(2)}, dynamics=${styleModifiers.dynamics.toFixed(2)}, rhythm=${rhythmStyle}, texture=${textureStyle}`);
+        console.log(`🎸 Bass descriptors: [${descriptors.join(', ')}]`);
+        
+        // Style-responsive parameters
         const fundamentalFreq = 82.41; // E2
         const beatDuration = 60 / context.tempo;
-        const notesPerBeat = 2;
         
-        for (let beat = 0; beat < context.duration * 2; beat += notesPerBeat) {
-            const startTime = beat * beatDuration;
-            const noteDuration = beatDuration * 1.5;
+        // ENHANCED: Dramatically different patterns based on style
+        let bassPattern, amplitude, attackTime, sustainLevel, noteLength;
+        
+        if (descriptors.includes('heavy') || descriptors.includes('crushing') || descriptors.includes('thunderous')) {
+            // HEAVY BASS: Deep, powerful, sustained notes
+            amplitude = 1.0; // Maximum volume
+            attackTime = 0.001; // Sharp attack
+            sustainLevel = 0.9; // High sustain
+            noteLength = 1.0; // Full beat notes
+            bassPattern = 'heavy_sustained';
+            console.log('🎸 HEAVY BASS: Deep, powerful, sustained pattern');
             
-            // Alternate between root and fifth
-            const frequency = beat % 4 === 0 ? fundamentalFreq : fundamentalFreq * 1.5;
-            const bassSample = this.generateBassSample(frequency, 0.8, noteDuration);
+        } else if (descriptors.includes('upbeat') || descriptors.includes('bouncy') || descriptors.includes('peppy')) {
+            // UPBEAT BASS: Light, bouncy, rhythmic
+            amplitude = 0.7; // Moderate volume
+            attackTime = 0.01; // Quick attack
+            sustainLevel = 0.4; // Short sustain
+            noteLength = 0.25; // Quarter beat notes
+            bassPattern = 'upbeat_staccato';
+            console.log('🎸 UPBEAT BASS: Light, bouncy, rhythmic pattern');
+            
+        } else if (descriptors.includes('soft') || descriptors.includes('gentle') || descriptors.includes('delicate')) {
+            // SOFT BASS: Gentle, smooth, legato
+            amplitude = 0.4; // Low volume
+            attackTime = 0.05; // Soft attack
+            sustainLevel = 0.6; // Medium sustain
+            noteLength = 0.8; // Long notes
+            bassPattern = 'soft_legato';
+            console.log('🎸 SOFT BASS: Gentle, smooth, legato pattern');
+            
+        } else {
+            // DEFAULT BASS: Balanced
+            amplitude = 0.6;
+            attackTime = 0.02;
+            sustainLevel = 0.5;
+            noteLength = 0.5;
+            bassPattern = 'balanced';
+        }
+        
+        // Apply dynamics multiplier
+        amplitude *= styleModifiers.dynamics;
+        
+        // Calculate note density based on pattern
+        const baseDensity = bassPattern === 'upbeat_staccato' ? 4 : 
+                           bassPattern === 'heavy_sustained' ? 1 : 2;
+        const notesPerBeat = Math.max(1, baseDensity);
+        
+        console.log(`🎸 Bass generation: pattern=${bassPattern}, amplitude=${amplitude.toFixed(2)}, attack=${attackTime}s, sustain=${sustainLevel}, notes/beat=${notesPerBeat}`);
+        
+        for (let beat = 0; beat < context.duration * notesPerBeat; beat++) {
+            const startTime = (beat / notesPerBeat) * beatDuration;
+            const noteDuration = beatDuration * noteLength;
+            
+            // ENHANCED: Style-specific bass patterns
+            let frequency = fundamentalFreq;
+            const patternPosition = beat % 8;
+            
+            switch (bassPattern) {
+                case 'heavy_sustained':
+                    // Heavy bass: Deep sustained notes, mostly root and octave
+                    if (beat % 4 === 0) {
+                        frequency = fundamentalFreq; // Root
+                    } else if (beat % 4 === 2) {
+                        frequency = fundamentalFreq * 0.5; // Octave below
+                    } else {
+                        continue; // Skip other beats for sustained effect
+                    }
+                    break;
+                    
+                case 'upbeat_staccato':
+                    // Upbeat bass: Quick, bouncy pattern with higher notes
+                    const upbeatIntervals = [1, 1.25, 1.5, 1.25, 1, 1.33, 1.5, 1.2];
+                    frequency = fundamentalFreq * upbeatIntervals[patternPosition] * 1.5; // Higher register
+                    break;
+                    
+                case 'soft_legato':
+                    // Soft bass: Smooth, gentle progression
+                    const softIntervals = [1, 1.12, 1.25, 1.2, 1, 1.1, 1.25, 1.15];
+                    frequency = fundamentalFreq * softIntervals[patternPosition];
+                    break;
+                    
+                default:
+                    // Balanced pattern
+                    frequency = beat % 4 === 0 ? fundamentalFreq : fundamentalFreq * 1.5;
+            }
+            
+            // Generate sample with style-specific parameters
+            const bassSample = this.generateBassSample(frequency, amplitude, noteDuration, attackTime, sustainLevel);
             
             const startSample = Math.floor(startTime * this.sampleRate);
             this.addSampleToTrack(bassTrack, bassSample, startSample);
@@ -415,15 +605,64 @@ class IsolatedAudioGenerator {
         console.log('🎸 Generating lead guitar with melodic phrases...');
         const guitarTrack = new Float32Array(samples);
         
-        // Pentatonic scale in E minor
-        const scale = [164.81, 196.00, 220.00, 246.94, 293.66]; // E3, G3, A3, B3, D4
+        // Get style modifiers
+        const styleModifiers = context.styleModifiers || {};
+        
+        // Select scale based on brightness/mood
+        let scale;
+        if (styleModifiers.brightness > 0.7) {
+            // Bright major pentatonic
+            scale = [164.81, 185.00, 207.65, 246.94, 277.18]; // E major pentatonic
+        } else if (styleModifiers.brightness < 0.4) {
+            // Dark blues scale
+            scale = [164.81, 196.00, 207.65, 220.00, 246.94, 293.66]; // E blues scale
+        } else {
+            // Balanced minor pentatonic
+            scale = [164.81, 196.00, 220.00, 246.94, 293.66]; // E minor pentatonic
+        }
+        
         const beatDuration = 60 / context.tempo;
         
-        for (let beat = 0; beat < context.duration; beat += 0.5) {
-            if (Math.random() > 0.3) { // 70% note density
+        // Adjust note density based on energy and complexity
+        const baseDensity = 0.7; // 70% base note density
+        const densityModifier = (styleModifiers.energy || 0.5) * 0.6 + (styleModifiers.complexity || 0.5) * 0.4;
+        const noteDensity = Math.min(0.95, baseDensity + densityModifier);
+        
+        // Adjust amplitude based on dynamics
+        const baseAmplitude = 0.7;
+        const amplitude = baseAmplitude * (styleModifiers.dynamics || 0.6);
+        
+        // Adjust note timing for groove
+        const baseNoteSpacing = 0.5;
+        const noteSpacing = styleModifiers.groove > 0.6 ? baseNoteSpacing * 0.75 : baseNoteSpacing; // Faster for groovy
+        
+        console.log(`🎸 Lead guitar variation: density=${noteDensity.toFixed(2)}, brightness=${(styleModifiers.brightness || 0.5).toFixed(2)}, scale=${scale.length} notes`);
+        
+        for (let beat = 0; beat < context.duration; beat += noteSpacing) {
+            if (Math.random() < noteDensity) {
                 const startTime = beat * beatDuration;
-                const frequency = scale[Math.floor(Math.random() * scale.length)];
-                const guitarSample = this.generateGuitarSample(frequency, 0.7, 0.4);
+                
+                // Choose frequency based on energy (higher energy = higher notes)
+                let scaleIndex;
+                if (styleModifiers.energy > 0.7) {
+                    // High energy - favor higher notes
+                    scaleIndex = Math.floor(Math.random() * scale.length * 0.7) + Math.floor(scale.length * 0.3);
+                } else if (styleModifiers.energy < 0.4) {
+                    // Low energy - favor lower notes
+                    scaleIndex = Math.floor(Math.random() * scale.length * 0.6);
+                } else {
+                    // Balanced - use full range
+                    scaleIndex = Math.floor(Math.random() * scale.length);
+                }
+                
+                scaleIndex = Math.min(scaleIndex, scale.length - 1);
+                const frequency = scale[scaleIndex];
+                
+                // Adjust note duration based on style
+                const baseDuration = 0.4;
+                const noteDuration = styleModifiers.groove > 0.7 ? baseDuration * 0.8 : baseDuration;
+                
+                const guitarSample = this.generateGuitarSample(frequency, amplitude, noteDuration);
                 
                 const startSample = Math.floor(startTime * this.sampleRate);
                 this.addSampleToTrack(guitarTrack, guitarSample, startSample);
@@ -537,27 +776,40 @@ class IsolatedAudioGenerator {
 
     // AUDIO GENERATION METHODS
 
-    generateBassSample(frequency, velocity, duration) {
+    generateBassSample(frequency, velocity, duration, attackTime = 0.01, sustainLevel = 0.5) {
         const samples = Math.floor(duration * this.sampleRate);
         const sample = new Float32Array(samples);
         
         for (let i = 0; i < samples; i++) {
             const t = i / this.sampleRate;
             
-            // Bass harmonics: fundamental + octave + fifth
+            // Enhanced bass harmonics based on style
             let amplitude = Math.sin(2 * Math.PI * frequency * t) * 0.7;
-            amplitude += Math.sin(2 * Math.PI * frequency * 2 * t) * 0.2;
-            amplitude += Math.sin(2 * Math.PI * frequency * 1.5 * t) * 0.1;
             
-            // Bass envelope: quick attack, sustained, gradual release
-            const attack = 0.01;
-            const release = duration * 0.3;
+            // Add harmonics differently based on sustain level (style indicator)
+            if (sustainLevel > 0.8) {
+                // Heavy bass: more low-end harmonics
+                amplitude += Math.sin(2 * Math.PI * frequency * 0.5 * t) * 0.3; // Sub-octave
+                amplitude += Math.sin(2 * Math.PI * frequency * 2 * t) * 0.15;
+            } else if (sustainLevel < 0.5) {
+                // Light/upbeat bass: more higher harmonics  
+                amplitude += Math.sin(2 * Math.PI * frequency * 2 * t) * 0.25;
+                amplitude += Math.sin(2 * Math.PI * frequency * 3 * t) * 0.15;
+                amplitude += Math.sin(2 * Math.PI * frequency * 4 * t) * 0.1;
+            } else {
+                // Balanced harmonics
+                amplitude += Math.sin(2 * Math.PI * frequency * 2 * t) * 0.2;
+                amplitude += Math.sin(2 * Math.PI * frequency * 1.5 * t) * 0.1;
+            }
+            
+            // Style-responsive envelope
+            const release = duration * (sustainLevel > 0.8 ? 0.5 : 0.3); // Longer release for heavy
             let envelope = 1.0;
             
-            if (t < attack) {
-                envelope = t / attack;
+            if (t < attackTime) {
+                envelope = t / attackTime;
             } else if (t > duration - release) {
-                envelope = (duration - t) / release;
+                envelope = ((duration - t) / release) * sustainLevel;
             }
             
             sample[i] = amplitude * envelope * velocity;
@@ -743,8 +995,9 @@ class IsolatedAudioGenerator {
         const wav = new WaveFile();
         wav.fromScratch(1, this.sampleRate, '16', pcmData);
         
-        // Save with requested naming format
-        const filename = `isolated-${instrument}.wav`;
+        // Save with unique timestamp to avoid overwrites
+        const timestamp = Date.now();
+        const filename = `isolated-${instrument}-${timestamp}.wav`;
         const filePath = path.join(outputDir, filename);
         
         fs.writeFileSync(filePath, wav.toBuffer());

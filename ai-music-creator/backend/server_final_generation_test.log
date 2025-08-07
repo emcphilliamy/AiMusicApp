@@ -1,0 +1,176 @@
+[dotenv@17.2.1] injecting env (8) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+✅ Multi-AI classes loaded successfully
+📁 Loaded model: Professional Instrument AI
+🧠 Loaded 1 saved models
+🧠 Switched to model: Professional Instrument AI (instrument_focused_1753999330514) - marked as active
+🎯 Set default active model: Professional Instrument AI
+🔍 SpectralDrumAnalyzer initialized for frequency analysis
+🥁 RealisticDrumSynthesis initialized - Advanced physical modeling enabled
+🎵 PromptAnalyzer initialized with musical descriptors
+🎼 IsolatedAudioGenerator initialized - connected to Professional Instrument AI model
+🧠 Connected to trained model: Professional Instrument AI with 138 samples
+✅ Professional Instrument AI already has 138 training samples - ready to use!
+🔍 Spotify credential check:
+  - CLIENT_ID: 1af28e67...
+  - CLIENT_SECRET: 4d272c36...
+  - CONFIGURED: true
+🥁 DrumTrainingSystem initialized for drum-only track training
+🎵 Professional Instrument AI Music Creator backend running on http://localhost:3001
+📁 Upload directory: /Users/ewanmcphilliamy/Documents/SunoLikeAppByCluade/ai-music-creator/backend/uploads
+🎼 Generated music directory: /Users/ewanmcphilliamy/Documents/SunoLikeAppByCluade/ai-music-creator/backend/generated
+🔌 WebSocket server ready for real-time updates
+🚀 Features: Professional Instrument AI generation, Spotify training, Multi-genre support
+✅ Using trained AI model: Professional Instrument AI with 138 samples
+🎵 Generating pop music with model: Professional Instrument AI (instrument_focused) | Trained tracks: 138 | "upbeat pop song" | Tempo: 120 | Key: C
+🧠 Generating with instrument_focused model: Professional Instrument AI
+🎯 Model has 138 training samples
+✅ Using model-specific training data (138 samples)
+🎵 DEBUG: generateAdvancedMusic called - Genre: pop, useMultiAI: true
+🎵 DEBUG: Model context: {
+  modelType: 'instrument_focused',
+  modelConfig: {
+    focus: 'instruments',
+    complexity: 'high',
+    creativity: 0.5,
+    instruments: [
+      'drums',
+      'bass',
+      'lead_guitar',
+      'rhythm_guitar',
+      'piano',
+      'strings'
+    ],
+    processing: {
+      instrumentSeparation: true,
+      dynamicArrangement: true,
+      frequencyAnalysis: true
+    }
+  },
+  modelTraining: {
+    samples: [
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object], [Object], [Object],
+      [Object], [Object], [Object], [Object],
+      ... 38 more items
+    ],
+    patterns: {
+      pop: [Object],
+      jazz: [Object],
+      drum_focused: [Object],
+      isolated_drums: [Object],
+      isolated_lead_guitar: [Object],
+      isolated_piano: [Object],
+      isolated_bass: [Object],
+      rock: [Object],
+      electronic: [Object]
+    },
+    weights: {},
+    lastTrained: '2025-08-04T21:01:13.402Z'
+  },
+  hasTraining: true
+}
+🎼 Starting Multi-AI Orchestra Generation for: "upbeat pop song" - instrument-focused model
+🎭 Initialized Arrangement Coordinator
+🎯 Initialized Quality Assessment AI
+⚖️ Initialized Conflict Resolver
+🎵 DEBUG: Reggae enhancement systems disabled - using Professional Instrument AI
+🎵 DEBUG: Using Professional Instrument AI instead of reggae systems
+🎺 Initialized drums specialist AI
+🎺 Initialized bass specialist AI
+🎺 Initialized lead_guitar specialist AI
+🎺 Initialized rhythm_guitar specialist AI
+🎺 Initialized piano specialist AI
+🎺 Initialized strings specialist AI
+🎺 Initialized synthesizer specialist AI
+🎺 Initialized vocals specialist AI
+🥁 Initialized groove beat generator AI
+🥁 Initialized rhythm beat generator AI
+🥁 Initialized percussion beat generator AI
+🥁 Initialized fills beat generator AI
+🎼 Initialized 8 instrument specialists and 4 beat generators
+🧠 Prompt Analysis: Mood=happy, Energy=0.50, Complexity=0.50
+🎯 Selected instruments for pop: drums, bass, piano, vocals, guitar, synthesizer
+🎯 Selected 6 instruments: drums, bass, piano, vocals, guitar, synthesizer
+🎵 Multi-AI generating ensemble music for 6 instruments
+🎯 Generating drums pattern for pop
+🎯 Generating bass pattern for pop
+🎯 Generating piano pattern for pop
+🎯 Generating vocals pattern for pop
+⚠️ No specialist found for guitar, using basic pattern
+🎯 Generating synthesizer pattern for pop
+🎵 Generated 6 instrument patterns
+🥁 Multi-AI generating beats for pop
+🎵 Generating groove beat for pop
+🎵 Generating rhythm beat for pop
+🎵 Generating percussion beat for pop
+🎵 Generating fills beat for pop
+🥁 Generated 4 beat patterns
+🎭 Multi-AI coordinating arrangement
+🎼 Coordinating arrangement for 6 instruments
+🎭 Created arrangement with 6 sections
+⚖️ Multi-AI resolving conflicts
+🔧 Resolving conflicts between 3 AI suggestions
+⚖️ Resolved 0 conflicts
+🎯 Multi-AI assessing quality
+🔍 Assessing quality of generated music
+⚠️ instruments is not an array: object
+🎯 Quality Score: 75.8% (0 recommendations)
+🎵 DEBUG: MusicAnalyzer.generateReggaeFeatures called with options: {
+  prompt: 'upbeat pop song',
+  genre: 'pop',
+  tempo: 120,
+  key: 'C',
+  instruments: [ 'drums', 'bass', 'piano', 'vocals', 'guitar', 'synthesizer' ],
+  patterns: {
+    instruments: {
+      drums: [Object],
+      bass: [Object],
+      piano: [Object],
+      vocals: [Object],
+      guitar: [Object],
+      synthesizer: [Object]
+    },
+    beats: {
+      groove: [Object],
+      rhythm: [Object],
+      percussion: [Object],
+      fills: [Object]
+    },
+    arrangement: {
+      sections: [Array],
+      layering: [Object],
+      dynamics: [Object],
+      transitions: []
+    },
+    chords: [ 'C', 'C', 'F', 'G' ],
+    tempo: 120,
+    key: 'C',
+    genre: 'pop'
+  },
+  qualityScore: 0.7581126513259635
+}
+🎺 Generated features for reggae track: tempo=120, key=C, complexity=0.60
+🎵 DEBUG: Using standard audio synthesis
+🎵 Synthesizing audio from AI patterns:
+   - 6 instrument patterns
+   - 4 beat patterns
+   - 6 arrangement sections
+   - Tempo: 120 BPM, Key: C
+📁 Audio file created: generated-1754343861533.wav
+✅ Multi-AI Orchestra completed: generated-1754343861533.wav (Quality: 75.8%)
+💾 Saved model: Professional Instrument AI
+✅ pop music generated: generated-1754343861533.wav

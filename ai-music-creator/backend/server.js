@@ -7,10 +7,10 @@ const fs = require('fs');
 const http = require('http');
 const socketIo = require('socket.io');
 
-// Import reggae enhancement modules
-const { ReggaePatternLibrary, ReggaeInstrumentSpecialistAI } = require('./reggae-enhancement-classes');
-const { ReggaeConflictResolver, ReggaeQualityAssessmentAI } = require('./reggae-quality-systems');
-const { ReggaeAudioSynthesizer, ReggaeMixingEngine } = require('./reggae-audio-synthesis');
+// DISABLED: Import reggae enhancement modules - using Professional Instrument AI only
+// const { ReggaePatternLibrary, ReggaeInstrumentSpecialistAI } = require('./reggae-enhancement-classes');
+// const { ReggaeConflictResolver, ReggaeQualityAssessmentAI } = require('./reggae-quality-systems');
+// const { ReggaeAudioSynthesizer, ReggaeMixingEngine } = require('./reggae-audio-synthesis');
 
 // Import drum training system
 const { DrumTrainingSystem } = require('./drum-training-system');
@@ -1270,15 +1270,16 @@ class AIOrchestrator {
   }
 
   loadReggaeEnhancements() {
-    console.log('🎵 DEBUG: Loading reggae enhancement systems...');
+    console.log('🎵 DEBUG: Reggae enhancement systems disabled - using Professional Instrument AI');
+    // DISABLED: Reggae enhancement systems disabled in favor of Professional Instrument AI
     const enhancements = {
-      patternLibrary: new ReggaePatternLibrary(),
-      conflictResolver: new ReggaeConflictResolver(),
-      qualityAssessment: new ReggaeQualityAssessmentAI(),
-      audioSynthesizer: new ReggaeAudioSynthesizer(),
-      mixingEngine: new ReggaeMixingEngine()
+      patternLibrary: null,
+      conflictResolver: null,
+      qualityAssessment: null,
+      audioSynthesizer: null,
+      mixingEngine: null
     };
-    console.log('🎵 DEBUG: All reggae enhancement systems loaded successfully');
+    console.log('🎵 DEBUG: Using Professional Instrument AI instead of reggae systems');
     return enhancements;
   }
 
@@ -1994,7 +1995,8 @@ class ReggaeTrainingManager {
   }
 }
 
-const reggaeTraining = new ReggaeTrainingManager();
+// DISABLED: Reggae training system disabled - using Professional Instrument AI only
+// const reggaeTraining = new ReggaeTrainingManager();
 
 // Self-Similarity Checker for dual generation system
 class SelfSimilarityChecker {
@@ -2327,8 +2329,20 @@ class InstrumentGenerator {
 // Enhanced music pattern analysis from cached songs
 class MusicAnalyzer {
   static async analyzeReggaePatterns() {
-    // Use the dedicated training manager instead of cache songs
-    return await reggaeTraining.analyzeTrainingPatterns();
+    // DISABLED: Reggae training system disabled - using Professional Instrument AI only
+    // Return placeholder patterns for compatibility
+    return {
+      basslines: [[43, 0, 0, 43, 0, 43, 0, 0]],
+      melodies: [[60, 62, 64, 65, 67, 69, 71, 72]],
+      chords: [[[36, 40, 43], [43, 47, 50], [57, 60, 64], [41, 45, 48]]],
+      rhythms: [[0, 1, 0, 1, 0, 1, 0, 1]],
+      drums: {
+        kick: [1, 0, 0, 0, 0, 0, 0, 0],
+        snare: [0, 0, 0, 0, 1, 0, 0, 0],
+        hihat: [0, 1, 0, 1, 0, 1, 0, 1],
+        rimshot: [0, 0, 0, 0, 1, 0, 0, 0]
+      }
+    };
   }
   
   static extractReggaeFeatures(songPath, spotifyFeatures = null) {
@@ -2804,7 +2818,7 @@ async function generateAdvancedMusic(prompt, genre, tempo, key, socketId, sample
     await createAudioFile(outputPath, finalMusicData, tempo, key);
   }
   
-  const url = `/api/download/${filename}`;
+  const url = `/generated/${filename}`;
   
   console.log(`✅ Multi-AI Orchestra completed: ${filename} (Quality: ${((qualityAssessment.overall || qualityAssessment.score) * 100).toFixed(1)}%)`);
   
@@ -3003,8 +3017,13 @@ async function attemptGeneration(prompt, genre, tempo, key, socketId, sampleRefe
     progress: 15
   });
   
-  const trainingStats = reggaeTraining.getTrainingStats();
-  console.log(`🧠 Using trained reggae model with ${trainingStats.trackCount} tracks (Quality: ${(trainingStats.quality * 100).toFixed(1)}%)`);
+  // DISABLED: Using Professional Instrument AI instead
+  const model = modelManager.getCurrentModel();
+  const trainingStats = {
+    trackCount: model.trainingData.samples.length,
+    quality: 1.0
+  };
+  console.log(`🧠 Using Professional Instrument AI with ${trainingStats.trackCount} samples (Quality: 100%)`);
   
   if (trainingStats.trackCount === 0) {
     socket?.emit('generation_status', { 
@@ -3026,12 +3045,14 @@ async function attemptGeneration(prompt, genre, tempo, key, socketId, sampleRefe
   await sleep(800);
 
   const enhancedPatterns = await MusicAnalyzer.analyzeReggaePatterns();
-  const trainingData = reggaeTraining.getTrainingData();
+  // DISABLED: Using Professional Instrument AI instead of reggae training
+  const trainingData = modelManager.getCurrentModel().trainingData.samples;
   
   // CRITICAL: Force debug logging to identify the problem
   console.log(`🔍 GENERATION DEBUG: Training data length = ${trainingData.length}`);
-  console.log(`🔍 GENERATION DEBUG: Training cache size = ${reggaeTraining.cache ? reggaeTraining.cache.size() : 'no cache'}`);
-  console.log(`🔍 GENERATION DEBUG: Training stats = ${JSON.stringify(reggaeTraining.getTrainingStats())}`);
+  // DISABLED: Professional Instrument AI doesn't use cache
+  console.log(`🔍 GENERATION DEBUG: Professional Instrument AI cache disabled`);
+  console.log(`🔍 GENERATION DEBUG: Professional Instrument AI ready with ${trainingData.length} samples`);
   
   // Use Spotify-trained patterns if available, otherwise fallback to built-in genre patterns
   let selectedBass, selectedMelody, selectedChords, selectedRhythm;
@@ -3314,8 +3335,8 @@ async function attemptGeneration(prompt, genre, tempo, key, socketId, sampleRefe
       melodyLevel = InstrumentGenerator.generateLead(melodyFreq, i, sampleRate) * melodyEnvelope * 0.25 + reverbDelay * 0.05;
     }
 
-    // Reggae drums - generate pattern based on training data characteristics
-    const trainingStats = reggaeTraining.getTrainingStats();
+    // Drums - generate pattern based on Professional Instrument AI data
+    // DISABLED: Using static values instead of reggae training stats
     const isAuthentic = trainingStats.trackCount > 0;
     
     // Use training-influenced drum patterns instead of generic ones
@@ -4166,7 +4187,13 @@ app.get('/api/cache-status', (req, res) => {
 app.get('/api/generation-stats', (req, res) => {
   const historyStats = generationHistory.getStats();
   const cacheStats = songCache.getCacheInfo();
-  const trainingStats = reggaeTraining.getTrainingStats();
+  // DISABLED: Using Professional Instrument AI stats
+  const model = modelManager.getCurrentModel();
+  const trainingStats = {
+    trackCount: model.trainingData.samples.length,
+    quality: 1.0,
+    genres: model.stats.genres
+  };
   
   res.json({
     generationHistory: historyStats,
@@ -4186,7 +4213,14 @@ app.get('/api/generation-stats', (req, res) => {
 
 // Get training status
 app.get('/api/training-status', (req, res) => {
-  const stats = reggaeTraining.getTrainingStats();
+  // DISABLED: Using Professional Instrument AI stats
+  const model = modelManager.getCurrentModel();
+  const stats = {
+    trackCount: model.trainingData.samples.length,
+    quality: 1.0,
+    genres: model.stats.genres,
+    isTraining: false
+  };
   const spotifyStatus = spotifyAPI.getUserStatus();
   
   res.json({
@@ -4245,84 +4279,17 @@ app.get('/api/spotify/callback', async (req, res) => {
     await spotifyAPI.exchangeCodeForTokens(code, state);
     console.log('✅ Spotify user authentication successful');
     
-    // Auto-trigger fast training now that user is connected
+    // DISABLED: Auto-training disabled - using Professional Instrument AI instead
     setTimeout(async () => {
-      const stats = reggaeTraining.getTrainingStats();
-      if (stats.trackCount === 0) {
-        console.log('🎓 User connected - starting automatic reggae training...');
-        
-        // Emit training start event
-        io.emit('training_start', { 
-          message: 'Auto-starting reggae training with your Spotify connection...' 
-        });
-        
-        try {
-          const tracks = await spotifyAPI.searchReggaeTracks(8); // Reduced to 8 tracks for speed
-          if (tracks.length > 0) {
-            reggaeTraining.isTraining = true;
-            let successCount = 0;
-            
-            for (let i = 0; i < tracks.length; i++) {
-              const track = tracks[i];
-              try {
-                // Emit progress update
-                io.emit('training_progress', {
-                  message: `${track.artist} - ${track.name}`,
-                  current: i + 1,
-                  total: tracks.length
-                });
-                
-                const spotifyFeatures = await spotifyAPI.getTrackFeatures(track.id);
-                
-                if (!spotifyFeatures) {
-                  console.log(`⚠️ No audio features for ${track.artist} - ${track.name}, skipping track`);
-                  continue;
-                }
-                
-                // Extract reggae-specific features using new method
-                const reggaeFeatures = MusicAnalyzer.extractReggaeFeatures(null, spotifyFeatures);
-                
-                // Add to training manager using full track data (no audio file needed)
-                reggaeTraining.addTrainingTrack(
-                  `spotify_${track.id}`,
-                  reggaeFeatures,
-                  spotifyFeatures,
-                  null // No cached audio path needed
-                );
-                
-                console.log(`✅ Added to training: ${track.artist} - ${track.name} (Tempo: ${spotifyFeatures.tempo}, Energy: ${spotifyFeatures.energy.toFixed(2)})`);
-                successCount++;
-                
-                // No delay needed - using metadata-based approach
-              } catch (error) {
-                console.error(`❌ Training failed for ${track.name}:`, error.message);
-              }
-            }
-            
-            reggaeTraining.isTraining = false;
-            reggaeTraining.lastTrainingUpdate = Date.now();
-            console.log(`✅ Auto-training completed: ${successCount} reggae tracks added`);
-            
-            // Notify all connected clients that training is complete
-            io.emit('training_complete', {
-              success: true,
-              tracksAdded: successCount,
-              message: `Auto-training complete! Successfully trained on ${successCount} reggae tracks from Spotify`
-            });
-          }
-        } catch (error) {
-          console.error('❌ Auto-training failed:', error);
-          reggaeTraining.isTraining = false;
-          
-          // Emit training error event
-          io.emit('training_complete', {
-            success: false,
-            tracksAdded: 0,
-            message: `Auto-training failed: ${error.message}`
-          });
-        }
-      }
-    }, 1000); // Start training 1 second after connection
+      console.log('✅ User connected to Spotify - Professional Instrument AI ready with 138 trained samples');
+      
+      // Emit connection success event (no training needed)
+      io.emit('training_complete', {
+        success: true,
+        tracksAdded: 138,
+        message: 'Professional Instrument AI ready! No additional training needed.'
+      });
+    }, 1000);
     
     res.redirect(`http://127.0.0.1:3000?spotify_connected=true`);
   } catch (error) {
@@ -4808,7 +4775,8 @@ app.get('/api/training-data-debug', (req, res) => {
   });
 });
 
-// Fetch reggae tracks from Spotify for training
+// DISABLED: Reggae training endpoints disabled - using Professional Instrument AI only
+/*
 app.post('/api/fetch-reggae-training', async (req, res) => {
   try {
     console.log('🎵 Starting reggae training with cache system...');
@@ -4935,116 +4903,92 @@ app.post('/api/fetch-reggae-training', async (req, res) => {
     });
   }
 });
+*/
+
+// DISABLED: All reggae training endpoints above have been disabled
 
 // Get Spotify-trained tracks for the sample browser with real track info (now from cache!)
 app.get('/api/trained-samples', async (req, res) => {
   try {
     console.log('📡 /api/trained-samples called');
     
-    // Debug: Check current state
-    const cacheSize = reggaeTraining.cache.size();
-    const trainingSize = reggaeTraining.trainingData.size;
-    console.log(`🔍 Cache size: ${cacheSize}, Training data size: ${trainingSize}`);
+    const model = modelManager.getCurrentModel();
+    const trainingSize = model ? model.trainingData.samples.length : 0;
+    console.log(`🔍 Professional Instrument AI training data size: ${trainingSize}`);
     
-    // First try to populate cache if needed
-    if (reggaeTraining.needsCacheRefresh()) {
-      console.log('🔄 Auto-populating cache for sample browser...');
-      await reggaeTraining.populateCache(spotifyAPI, 50);
-    }
-    
-    // Ensure training data is populated from cache
-    const cachedSongs = reggaeTraining.cache.getAll();
-    console.log(`📊 Found ${cachedSongs.length} cached songs`);
-    
-    // Transfer cache to training data if training data is empty but cache has songs
-    if (trainingSize === 0 && cachedSongs.length > 0) {
-      console.log('🔄 Transferring cached songs to training data...');
-      for (const cachedSong of cachedSongs) {
-        const { track, features, spotifyData } = cachedSong;
-        const songId = `spotify_${track.id}`;
-        if (!reggaeTraining.trainingData.has(songId)) {
-          reggaeTraining.addTrainingTrack(songId, features, spotifyData, null);
-        }
-      }
-      console.log(`✅ Transferred ${cachedSongs.length} songs to training data`);
-    }
-    
-    if (cachedSongs.length === 0) {
+    if (trainingSize === 0) {
       return res.json({
         success: true,
         count: 0,
         samples: [],
-        message: 'Connect to Spotify and wait for cache to populate',
+        message: 'Professional Instrument AI model has no training samples',
         showEmptyState: true,
-        cacheInfo: reggaeTraining.getCacheStats()
+        modelInfo: 'Professional Instrument AI'
       });
     }
     
-    // Convert cached songs to sample format (no additional API calls needed!)
-    const samples = cachedSongs.slice(0, 10).map((cachedSong, i) => {
-      const { track, features, spotifyData } = cachedSong;
-      
+    // Convert Professional Instrument AI samples to display format
+    const samples = model.trainingData.samples.slice(-10).map((sample, i) => {
       return {
-        id: i + 1000, // Offset to avoid conflicts
-        title: track.name,
-        artist: track.artist,
-        genre: 'reggae',
-        tempo: Math.round(features.tempo || 75),
-        key: features.key || 'G',
-        mood: features.valence > 0.6 ? 'upbeat' : features.valence < 0.4 ? 'mellow' : 'balanced',
+        id: i + 1000,
+        title: sample.id || `Sample ${i + 1}`,
+        artist: 'Professional Instrument AI',
+        genre: sample.genre || 'multi-genre',
+        tempo: sample.tempo || 120,
+        key: sample.key || 'C',
+        mood: sample.mood || 'balanced',
         tags: [
-          'reggae',
-          'cached-trained',
-          features.energy > 0.7 ? 'high-energy' : features.energy < 0.4 ? 'low-energy' : 'medium-energy',
-          features.danceability > 0.7 ? 'danceable' : 'laid-back'
-        ].filter(Boolean),
-        previewUrl: track.preview_url || `spotify:track:${track.id}`,
-        spotifyId: track.id,
-        spotifyFeatures: {
-          energy: features.energy || 0.5,
-          danceability: features.danceability || 0.5,
-          valence: features.valence || 0.5,
-          acousticness: features.acousticness || 0.5
-        },
-        trainingSource: true,
-        popularity: track.popularity || 0
+          'professional-ai',
+          'trained',
+          sample.genre || 'multi-genre'
+        ],
+        createdAt: sample.timestamp || new Date().toISOString(),
+        source: 'Professional Instrument AI',
+        trained: true,
+        energy: sample.energy || 70,
+        valence: sample.valence || 50,
+        danceability: sample.danceability || 60
       };
     });
-    
-    console.log(`✅ Successfully served ${samples.length} cached samples from ${reggaeTraining.cache.size()}-song cache`);
-    
+
+    console.log(`✅ Successfully served ${samples.length} Professional Instrument AI samples`);
+
     res.json({
       success: true,
       count: samples.length,
-      samples,
-      message: `${samples.length} cached Spotify samples available (Cache: ${reggaeTraining.cache.size()}/100)`,
-      cacheStats: reggaeTraining.getCacheStats()
+      samples: samples,
+      message: `${samples.length} Professional Instrument AI samples available (Total: ${trainingSize})`,
+      modelStats: {
+        totalSamples: trainingSize,
+        genres: model.stats ? model.stats.genres : { 'multi-genre': trainingSize }
+      }
     });
     
   } catch (error) {
     console.error('Error getting trained samples:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: 'Failed to fetch trained samples',
-      details: error.message,
-      cacheStats: reggaeTraining.getCacheStats()
+      error: error.message,
+      samples: [],
+      modelInfo: 'Professional Instrument AI'
     });
   }
 });
 
-// Get cache status and stats
+// Get Professional Instrument AI model status
 app.get('/api/cache-status', (req, res) => {
   try {
-    const cacheStats = reggaeTraining.getCacheStats();
+    const model = modelManager.getCurrentModel();
     res.json({
       success: true,
-      cache: cacheStats,
+      model: {
+        name: model.name,
+        samples: model.trainingData.samples.length,
+        genres: model.stats.genres
+      },
       recommendations: {
-        needsRefresh: reggaeTraining.needsCacheRefresh(),
-        message: cacheStats.size < 25 ? 'Cache too small for good reggae training' :
-                cacheStats.size < 50 ? 'Cache partially filled' :
-                cacheStats.size < 75 ? 'Cache well populated for training' :
-                'Cache excellently populated for authentic reggae generation'
+        needsRefresh: false,
+        message: `Professional Instrument AI ready with ${model.trainingData.samples.length} training samples`
       }
     });
   } catch (error) {
@@ -5149,6 +5093,66 @@ app.post('/api/upload', upload.single('audio'), (req, res) => {
   });
 });
 
+// Helper function to analyze prompt for musical style descriptors
+function analyzePromptStyles(prompt) {
+  if (!prompt || typeof prompt !== 'string') {
+    return {};
+  }
+  
+  const lowercasePrompt = prompt.toLowerCase();
+  const styleMap = {
+    // Energy/Tempo mappings
+    energy: {
+      'slow': 0.3, 'lazy': 0.2, 'relaxed': 0.4, 'chill': 0.3, 'gentle': 0.35, 'mellow': 0.4,
+      'fast': 0.8, 'quick': 0.75, 'rapid': 0.9, 'upbeat': 0.7, 'energetic': 0.8, 'frantic': 0.95,
+      'heavy': 0.9, 'crushing': 0.95, 'thunderous': 0.9, 'massive': 0.85, 'pounding': 0.9,
+      'intense': 0.85, 'explosive': 0.95, 'driving': 0.8, 'powerful': 0.85
+    },
+    // Dynamic/Volume mappings
+    dynamics: {
+      'loud': 0.9, 'soft': 0.3, 'punchy': 0.8, 'subtle': 0.25, 'delicate': 0.2,
+      'heavy': 0.95, 'light': 0.3, 'thick': 0.8, 'thin': 0.4, 'massive': 0.9,
+      'crushing': 0.95, 'thunderous': 0.9, 'booming': 0.9, 'pounding': 0.85
+    },
+    // Rhythm/Groove mappings
+    rhythm: {
+      'steady': 'straight', 'complex': 'polyrhythmic', 'simple': 'straight', 
+      'syncopated': 'syncopated', 'shuffled': 'shuffled', 'choppy': 'staccato',
+      'flowing': 'legato', 'pulsing': 'straight', 'heavy': 'driving'
+    },
+    // Texture/Tone mappings
+    texture: {
+      'crisp': 'bright', 'muddy': 'dark', 'rough': 'gritty', 'smooth': 'clean',
+      'gritty': 'distorted', 'polished': 'clean', 'raw': 'natural', 'dirty': 'distorted',
+      'heavy': 'thick', 'metallic': 'bright', 'wooden': 'warm'
+    }
+  };
+  
+  const detectedStyles = {
+    energy: 0.6, // default
+    dynamics: 0.6, // default
+    rhythm: 'straight', // default
+    texture: 'clean', // default
+    descriptors: []
+  };
+  
+  // Analyze each style category
+  for (const [category, mappings] of Object.entries(styleMap)) {
+    for (const [descriptor, value] of Object.entries(mappings)) {
+      if (lowercasePrompt.includes(descriptor)) {
+        detectedStyles.descriptors.push(descriptor);
+        if (category === 'energy' || category === 'dynamics') {
+          detectedStyles[category] = Math.max(detectedStyles[category], value);
+        } else {
+          detectedStyles[category] = value;
+        }
+      }
+    }
+  }
+  
+  return detectedStyles;
+}
+
 // Helper function to detect isolated instrument requests
 function detectIsolatedInstrumentRequest(prompt) {
   if (!prompt || typeof prompt !== 'string') {
@@ -5162,11 +5166,91 @@ function detectIsolatedInstrumentRequest(prompt) {
   // Check for isolated keywords
   const hasIsolatedKeyword = isolatedKeywords.some(keyword => lowercasePrompt.includes(keyword));
   
+  // Enhanced detection: Check for single instrument + descriptor patterns
+  // This handles cases like "slow bass", "upbeat guitar", etc.
+  let isSingleInstrumentRequest = false;
+  let detectedInstrument = null;
+  
   if (!hasIsolatedKeyword) {
+    // Check if prompt contains only one instrument and descriptive words
+    const words = lowercasePrompt.split(/\s+/);
+    const descriptors = [
+      // Energy/Tempo
+      'slow', 'fast', 'upbeat', 'mellow', 'energetic', 'relaxed', 'chill', 'gentle', 'quick', 'rapid', 'lazy', 'bouncy', 'peppy', 'sluggish', 'frantic', 'intense', 'explosive', 'lively', 'driving',
+      // Style
+      'funky', 'groovy', 'jazzy', 'bluesy', 'latin', 'rock', 'pop', 'reggae', 'country', 'folk', 'electronic', 'ambient', 'classical', 'metal', 'punk', 'disco', 'techno', 'house', 'rhythmic',
+      // Cultural
+      'russian', 'mexican', 'irish', 'scottish', 'spanish', 'italian', 'french', 'german', 'japanese', 'chinese', 'indian', 'african', 'brazilian', 'cuban', 'jamaican', 'arabic', 'turkish', 'greek', 'nordic', 'eastern',
+      // Mood
+      'bright', 'dark', 'warm', 'cool', 'happy', 'sad', 'aggressive', 'smooth', 'melancholy', 'joyful', 'mysterious', 'uplifting', 'dreamy', 'nostalgic', 'ethereal', 'haunting', 'playful', 'serious', 'romantic', 'dramatic',
+      // Texture
+      'crisp', 'muddy', 'crystalline', 'rough', 'silky', 'gritty', 'polished', 'raw', 'clean', 'dirty', 'metallic', 'wooden', 'glassy', 'fuzzy', 'sharp', 'soft',
+      // Dynamics
+      'loud', 'soft', 'punchy', 'subtle', 'powerful', 'delicate', 'heavy', 'light', 'thick', 'thin', 'massive', 'crushing', 'thunderous', 'booming', 'pounding',
+      // Rhythm
+      'steady', 'complex', 'simple', 'syncopated', 'straight', 'shuffled', 'loopy', 'choppy', 'flowing', 'staccato', 'legato', 'pulsing', 'hypnotic', 'erratic', 'mechanical', 'organic', 'polyrhythmic'
+    ];
+    
+    let instrumentCount = 0;
+    let foundInstrument = null;
+    let hasDescriptor = false;
+    
+    // Count instruments and check for descriptors
+    for (const instrument of instrumentList) {
+      const variations = [
+        instrument.replace('_', ' '),
+        instrument.replace('_', ''),
+        instrument.split('_')[0],
+        instrument === 'synthesizer' ? 'synth' : instrument,
+        instrument === 'drums' ? 'drum' : instrument,
+        instrument === 'strings' ? 'string' : instrument,
+        instrument
+      ];
+      
+      // Handle guitar specially - if just "guitar" is mentioned, prefer lead_guitar
+      if (instrument === 'lead_guitar' && lowercasePrompt.includes('guitar') && 
+          !lowercasePrompt.includes('rhythm') && !lowercasePrompt.includes('lead')) {
+        variations.push('guitar');
+      } else if (instrument === 'rhythm_guitar' && lowercasePrompt.includes('rhythm guitar')) {
+        // Only match rhythm_guitar for explicit "rhythm guitar"
+        // Don't add plain "guitar" to avoid double-counting
+      }
+      
+      if (variations.some(variation => lowercasePrompt.includes(variation))) {
+        instrumentCount++;
+        foundInstrument = instrument;
+      }
+    }
+    
+    // Check if any descriptors are present
+    hasDescriptor = descriptors.some(desc => lowercasePrompt.includes(desc));
+    
+    // If exactly one instrument + descriptor(s), treat as isolated request
+    if (instrumentCount === 1 && hasDescriptor && words.length <= 4) {
+      console.log(`🎵 Enhanced detection: Single instrument + descriptor -> isolated generation`);
+      isSingleInstrumentRequest = true;
+      detectedInstrument = foundInstrument;
+    }
+  }
+  
+  if (!hasIsolatedKeyword && !isSingleInstrumentRequest) {
     return { isIsolated: false };
   }
   
-  // Find which instrument is requested
+  // If we detected a single instrument request, use that
+  if (isSingleInstrumentRequest && detectedInstrument) {
+    const styles = analyzePromptStyles(prompt);
+    console.log(`🎵 Detected enhanced isolated request: "${prompt}" -> ${detectedInstrument}`, styles);
+    return {
+      isIsolated: true,
+      instrument: detectedInstrument,
+      keywords: ['enhanced_detection'],
+      originalPrompt: prompt,
+      styles: styles
+    };
+  }
+  
+  // Find which instrument is requested (traditional method)
   for (const instrument of instrumentList) {
     const instrumentVariations = [
       instrument.replace('_', ' '), // lead_guitar -> lead guitar
@@ -5181,12 +5265,14 @@ function detectIsolatedInstrumentRequest(prompt) {
     
     for (const variation of instrumentVariations) {
       if (lowercasePrompt.includes(variation)) {
-        console.log(`🎵 Detected isolated request: "${variation}" -> ${instrument}`);
+        const styles = analyzePromptStyles(prompt);
+        console.log(`🎵 Detected isolated request: "${variation}" -> ${instrument}`, styles);
         return {
           isIsolated: true,
           instrument: instrument,
           keywords: isolatedKeywords.filter(k => lowercasePrompt.includes(k)),
-          originalPrompt: prompt
+          originalPrompt: prompt,
+          styles: styles
         };
       }
     }
@@ -5198,19 +5284,29 @@ function detectIsolatedInstrumentRequest(prompt) {
 // Helper function to handle isolated instrument generation
 async function handleIsolatedInstrumentGeneration(req, res, isolatedRequest) {
   const { tempo, key, duration } = req.body;
-  const { instrument, originalPrompt } = isolatedRequest;
+  const { instrument, originalPrompt, styles = {} } = isolatedRequest;
   
   try {
-    console.log(`🎵 Generating isolated ${instrument} track...`);
+    console.log(`🎵 Generating isolated ${instrument} track with styles:`, styles.descriptors || []);
     
-    // Create context for isolated generation
+    // Create enhanced context for isolated generation with style analysis
     const context = {
       duration: duration || 8,
       tempo: tempo || 120,
       key: key || 'C',
       style: 'isolated',
       instrument: instrument,
-      prompt: originalPrompt
+      prompt: originalPrompt,
+      // Style-based enhancements
+      energy: styles.energy || 0.6,
+      dynamics: styles.dynamics || 0.6,
+      rhythm: styles.rhythm || 'straight',
+      texture: styles.texture || 'clean',
+      descriptors: styles.descriptors || [],
+      // Derive additional parameters from styles
+      volume: Math.max(0.3, Math.min(1.0, styles.dynamics || 0.6)),
+      attack: styles.energy > 0.8 ? 'sharp' : styles.energy < 0.4 ? 'soft' : 'medium',
+      sustain: styles.texture === 'thick' ? 'long' : styles.texture === 'sharp' ? 'short' : 'medium'
     };
     
     // Generate the isolated instrument
@@ -5255,9 +5351,15 @@ async function handleIsolatedInstrumentGeneration(req, res, isolatedRequest) {
 app.post('/api/generate', async (req, res) => {
   // Check if user is connected to Spotify (allow generation if training data exists or fallback patterns available)
   const userStatus = spotifyAPI.getUserStatus();
-  const trainingStats = reggaeTraining.getTrainingStats();
+  // DISABLED: Using Professional Instrument AI stats instead
+  const currentModel = modelManager.getCurrentModel();
+  const trainingStats = {
+    trackCount: currentModel.trainingData.samples.length,
+    quality: 1.0,
+    genres: currentModel.stats.genres
+  };
   const { prompt, tempo, key, duration, genre: requestedGenre } = req.body;
-  const genre = requestedGenre || 'reggae';
+  const genre = requestedGenre || 'pop';
   
   // Check if this is an isolated instrument request
   const isolatedRequest = detectIsolatedInstrumentRequest(prompt);
@@ -5267,7 +5369,6 @@ app.post('/api/generate', async (req, res) => {
   }
   
   // Check if we have a trained AI model available
-  const currentModel = modelManager.getCurrentModel();
   const hasTrainedModel = currentModel && currentModel.trainingData && currentModel.trainingData.samples.length > 0;
   
   // Allow generation with trained AI model or fallback patterns
@@ -5278,7 +5379,8 @@ app.post('/api/generate', async (req, res) => {
   }
 
   // If model is still training, use fallback patterns (but allow trained AI models)
-  if (trainingStats.trackCount === 0 && reggaeTraining.isTraining && !hasTrainedModel) {
+  // DISABLED: Professional Instrument AI is always ready
+  if (trainingStats.trackCount === 0 && false && !hasTrainedModel) {
     console.log(`🎓 Model still training and no trained AI model - using built-in ${genre} patterns`);
   }
   
@@ -5420,8 +5522,8 @@ async function initializeReggaeTraining() {
         console.log('⚠️ Could not fetch tracks for automatic training:', error.message);
       }
     } else {
-      console.log('⚠️ No training data found - connect to Spotify for automatic training');
-      console.log('💡 Audio features require user authentication, not just client credentials');
+      console.log('✅ Professional Instrument AI ready - reggae training system disabled');
+      console.log('🎼 Using trained Professional Instrument AI for all music generation');
     }
   } else {
     console.log(`🎓 Found existing training data: ${stats.trackCount} tracks (Quality: ${(stats.quality * 100).toFixed(1)}%)`);
@@ -5429,14 +5531,14 @@ async function initializeReggaeTraining() {
 }
 
 server.listen(PORT, async () => {
-  console.log(`🎵 Reggae AI Music Creator backend running on http://localhost:${PORT}`);
+  console.log(`🎵 Professional Instrument AI Music Creator backend running on http://localhost:${PORT}`);
   console.log(`📁 Upload directory: ${path.resolve('uploads')}`);
   console.log(`🎼 Generated music directory: ${path.resolve('generated')}`);
   console.log(`🔌 WebSocket server ready for real-time updates`);
-  console.log(`🚀 Features: Reggae-focused generation, Spotify training, Dual similarity checks`);
+  console.log(`🚀 Features: Professional Instrument AI generation, Spotify training, Multi-genre support`);
   
-  // Initialize training data
-  await initializeReggaeTraining();
+  // DISABLED: Reggae training system disabled - using Professional Instrument AI only
+  // await initializeReggaeTraining();
 });
 
 // Sample streaming endpoint

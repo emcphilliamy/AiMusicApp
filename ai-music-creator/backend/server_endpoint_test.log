@@ -20,3 +20,6 @@
 🎼 Generated music directory: /Users/ewanmcphilliamy/Documents/SunoLikeAppByCluade/ai-music-creator/backend/generated
 🔌 WebSocket server ready for real-time updates
 🚀 Features: Professional Instrument AI generation, Spotify training, Multi-genre support
+📡 /api/trained-samples called
+🔍 Professional Instrument AI training data size: 138
+✅ Successfully served 10 Professional Instrument AI samples

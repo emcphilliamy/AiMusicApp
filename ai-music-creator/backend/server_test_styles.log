@@ -1,0 +1,74 @@
+[dotenv@17.2.1] injecting env (8) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+✅ Multi-AI classes loaded successfully
+📁 Loaded model: Professional Instrument AI
+🧠 Loaded 1 saved models
+🧠 Switched to model: Professional Instrument AI (instrument_focused_1753999330514) - marked as active
+🎯 Set default active model: Professional Instrument AI
+🔍 SpectralDrumAnalyzer initialized for frequency analysis
+🥁 RealisticDrumSynthesis initialized - Advanced physical modeling enabled
+🎵 PromptAnalyzer initialized with musical descriptors
+🎼 IsolatedAudioGenerator initialized - connected to Professional Instrument AI model
+🧠 Connected to trained model: Professional Instrument AI with 139 samples
+✅ Professional Instrument AI already has 139 training samples - ready to use!
+🔍 Spotify credential check:
+  - CLIENT_ID: 1af28e67...
+  - CLIENT_SECRET: 4d272c36...
+  - CONFIGURED: true
+🥁 DrumTrainingSystem initialized for drum-only track training
+🎵 Professional Instrument AI Music Creator backend running on http://localhost:3001
+📁 Upload directory: /Users/ewanmcphilliamy/Documents/SunoLikeAppByCluade/ai-music-creator/backend/uploads
+🎼 Generated music directory: /Users/ewanmcphilliamy/Documents/SunoLikeAppByCluade/ai-music-creator/backend/generated
+🔌 WebSocket server ready for real-time updates
+🚀 Features: Professional Instrument AI generation, Spotify training, Multi-genre support
+🎵 Enhanced detection: Single instrument + descriptor -> isolated generation
+🎵 Detected enhanced isolated request: "heavy bass" -> bass {
+  energy: 0.9,
+  dynamics: 0.95,
+  rhythm: 'driving',
+  texture: 'thick',
+  descriptors: [ 'heavy', 'heavy', 'heavy', 'heavy' ]
+}
+🎵 Isolated instrument request detected: bass
+🎵 Generating isolated bass track with styles: [ 'heavy', 'heavy', 'heavy', 'heavy' ]
+🎵 Prompt analysis complete: {
+  descriptors: [],
+  energy: '0.50',
+  groove: '0.50',
+  tempoModifier: '1.00'
+}
+❌ Isolated bass generation failed: instrumentAdjustments is not defined
+🎵 Enhanced detection: Single instrument + descriptor -> isolated generation
+🎵 Detected enhanced isolated request: "upbeat bass" -> bass {
+  energy: 0.7,
+  dynamics: 0.6,
+  rhythm: 'straight',
+  texture: 'clean',
+  descriptors: [ 'upbeat' ]
+}
+🎵 Isolated instrument request detected: bass
+🎵 Generating isolated bass track with styles: [ 'upbeat' ]
+🎼 Found descriptor: "upbeat" (energy)
+🎵 Prompt analysis complete: {
+  descriptors: [ 'upbeat' ],
+  energy: '0.70',
+  groove: '0.50',
+  tempoModifier: '1.10'
+}
+❌ Isolated bass generation failed: instrumentAdjustments is not defined
+🎵 Enhanced detection: Single instrument + descriptor -> isolated generation
+🎵 Detected enhanced isolated request: "heavy bass" -> bass {
+  energy: 0.9,
+  dynamics: 0.95,
+  rhythm: 'driving',
+  texture: 'thick',
+  descriptors: [ 'heavy', 'heavy', 'heavy', 'heavy' ]
+}
+🎵 Isolated instrument request detected: bass
+🎵 Generating isolated bass track with styles: [ 'heavy', 'heavy', 'heavy', 'heavy' ]
+🎵 Prompt analysis complete: {
+  descriptors: [],
+  energy: '0.50',
+  groove: '0.50',
+  tempoModifier: '1.00'
+}
+❌ Isolated bass generation failed: instrumentAdjustments is not defined

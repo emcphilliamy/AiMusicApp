@@ -4,18 +4,20 @@
   "type": "instrument_focused",
   "description": "AI model specialized in detailed instrument layering and arrangement",
   "created": "2025-07-31T22:02:10.514Z",
-  "lastUsed": "2025-08-04T20:21:00.598Z",
+  "lastUsed": "2025-08-05T20:59:44.605Z",
   "stats": {
-    "generationsCount": 2,
+    "generationsCount": 9,
     "averageRating": 0,
     "totalRatings": 0,
     "genres": {
-      "pop": 22,
-      "jazz": 20
+      "pop": 54,
+      "jazz": 40,
+      "rock": 20,
+      "electronic": 15
     },
     "performance": {
       "avgGenerationTime": 0,
-      "successRate": 1.5
+      "successRate": 2.8289682539682532
     }
   },
   "config": {
@@ -861,6 +863,1288 @@
         },
         "timestamp": 1754338844152,
         "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_bass_1754339916485",
+        "source": "isolated_generation",
+        "genre": "isolated_bass",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "bass",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754339916485,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_bass_1754339929637",
+        "source": "isolated_generation",
+        "genre": "isolated_bass",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "bass",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754339929637,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_bass_1754340397850",
+        "source": "isolated_generation",
+        "genre": "isolated_bass",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "bass",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754340397850,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_bass_1754340405413",
+        "source": "isolated_generation",
+        "genre": "isolated_bass",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "bass",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754340405413,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_bass_1754340422749",
+        "source": "isolated_generation",
+        "genre": "isolated_bass",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "bass",
+          "tempo": 80,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754340422749,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_0",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7113129060259716,
+            "layering": 0.8494335296679955,
+            "dynamics": 0.6951583600456663
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_1",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9591822194014121,
+            "layering": 0.9734553966222005,
+            "dynamics": 0.6682767504840434
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_2",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9655581244799855,
+            "layering": 0.7086013766392795,
+            "dynamics": 0.858096126529755
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_3",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7929854896162537,
+            "layering": 0.611324834683605,
+            "dynamics": 0.5154619402137973
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_4",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8660164911527617,
+            "layering": 0.8857606523926533,
+            "dynamics": 0.5040944948136022
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_5",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8968815128755215,
+            "layering": 0.6117131079361746,
+            "dynamics": 0.7310116200761151
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_6",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9156180540251452,
+            "layering": 0.813072027618558,
+            "dynamics": 0.8342886912907934
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_7",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8291913259680129,
+            "layering": 0.6418179928985028,
+            "dynamics": 0.607157186168734
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_8",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9478378295040728,
+            "layering": 0.8203563408278037,
+            "dynamics": 0.9244942226467812
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_9",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7293452177110237,
+            "layering": 0.9321454086916361,
+            "dynamics": 0.6778114788633277
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_10",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7539099561415176,
+            "layering": 0.6498332699631651,
+            "dynamics": 0.929733868195778
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_11",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9466546202444197,
+            "layering": 0.7890384417962995,
+            "dynamics": 0.8044204230774452
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_12",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7921864394391002,
+            "layering": 0.623854820839654,
+            "dynamics": 0.9410331026020037
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_13",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9537034349923796,
+            "layering": 0.6540239384646155,
+            "dynamics": 0.6645352055353316
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_14",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9299000989418159,
+            "layering": 0.6337381611610141,
+            "dynamics": 0.9056966970809218
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_15",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7459491010404361,
+            "layering": 0.9857707557080053,
+            "dynamics": 0.9564090502672662
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_16",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9618384868112193,
+            "layering": 0.9400174109944813,
+            "dynamics": 0.5088104611366016
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_17",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7410350081657682,
+            "layering": 0.68059401886012,
+            "dynamics": 0.9807742179188933
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_18",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7519650786069791,
+            "layering": 0.7393280273915143,
+            "dynamics": 0.760623391728727
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_19",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9742245869275035,
+            "layering": 0.7364323720569032,
+            "dynamics": 0.9727462118860551
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_20",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9882613056287444,
+            "layering": 0.8374208718562979,
+            "dynamics": 0.86883240166846
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_21",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9561628321697413,
+            "layering": 0.9497713911541672,
+            "dynamics": 0.9595462041949853
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_22",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7312788908565107,
+            "layering": 0.6152396664445307,
+            "dynamics": 0.5159646336366355
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_23",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.947439926507445,
+            "layering": 0.9890399999848636,
+            "dynamics": 0.6946807076377817
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341253088_24",
+        "source": "user_auth",
+        "genre": "pop",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9019635873417606,
+            "layering": 0.7928735115643015,
+            "dynamics": 0.5649939157023645
+          }
+        },
+        "timestamp": 1754341253088,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_0",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9325361708664203,
+            "layering": 0.7388099551188134,
+            "dynamics": 0.5490506011171448
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_1",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9928080219903461,
+            "layering": 0.6224971738908321,
+            "dynamics": 0.9767376789091082
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_2",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8190533384533364,
+            "layering": 0.832672501617503,
+            "dynamics": 0.8914962543756383
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_3",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8605789125361943,
+            "layering": 0.602289259436656,
+            "dynamics": 0.7065182853961389
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_4",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.927912080295078,
+            "layering": 0.9616213941369944,
+            "dynamics": 0.9837330474182508
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_5",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8975214447420531,
+            "layering": 0.9509466693596964,
+            "dynamics": 0.561851402683677
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_6",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8088012209022372,
+            "layering": 0.612157405303875,
+            "dynamics": 0.6216697332815234
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_7",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9849075242743831,
+            "layering": 0.6710585058083723,
+            "dynamics": 0.9708321205000672
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_8",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9935345226061084,
+            "layering": 0.6156816008283942,
+            "dynamics": 0.5869066631545429
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_9",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8297314149455248,
+            "layering": 0.7425340700804905,
+            "dynamics": 0.962733557775187
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_10",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9001220862970549,
+            "layering": 0.6006030690483902,
+            "dynamics": 0.5969205860095557
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_11",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9513324584141667,
+            "layering": 0.6664381409781999,
+            "dynamics": 0.6794480474470227
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_12",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8147822403241924,
+            "layering": 0.7314369883480669,
+            "dynamics": 0.8328534736137283
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_13",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8378910617727482,
+            "layering": 0.9171947994737706,
+            "dynamics": 0.7998284788706658
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_14",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9502275893957801,
+            "layering": 0.9243526703807345,
+            "dynamics": 0.9265770764275156
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_15",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8045936453258281,
+            "layering": 0.9061048628303129,
+            "dynamics": 0.6264761598812171
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_16",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7628599898716768,
+            "layering": 0.9580154210820389,
+            "dynamics": 0.8851945450829465
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_17",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7967062394990673,
+            "layering": 0.8925844753137122,
+            "dynamics": 0.6135988728902497
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_18",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9716170931260042,
+            "layering": 0.6574412333177301,
+            "dynamics": 0.6279098099271596
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341270057_19",
+        "source": "user_auth",
+        "genre": "jazz",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9664279887767829,
+            "layering": 0.772113170474872,
+            "dynamics": 0.5449139837907104
+          }
+        },
+        "timestamp": 1754341270057,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_0",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8473112829160984,
+            "layering": 0.7967626613855789,
+            "dynamics": 0.604689550994303
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_1",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9433876704101197,
+            "layering": 0.8511316468124817,
+            "dynamics": 0.9449236124678501
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_2",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7265421152797739,
+            "layering": 0.8499295433279253,
+            "dynamics": 0.5503993967140197
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_3",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7214773266223682,
+            "layering": 0.6493197955298112,
+            "dynamics": 0.9288165472231223
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_4",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7553781361359307,
+            "layering": 0.8230176676931105,
+            "dynamics": 0.9484450380263973
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_5",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8718106141879874,
+            "layering": 0.8743966506059717,
+            "dynamics": 0.7969637301375898
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_6",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7032569244485176,
+            "layering": 0.9388564192724467,
+            "dynamics": 0.6183682083106903
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_7",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8910892705429055,
+            "layering": 0.7673704602925723,
+            "dynamics": 0.8195558440796505
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_8",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9760153342554341,
+            "layering": 0.9756929264207708,
+            "dynamics": 0.8452721040798239
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_9",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8395422536385202,
+            "layering": 0.6981211649433624,
+            "dynamics": 0.7011757602158082
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_10",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9574475232261199,
+            "layering": 0.6778131748523724,
+            "dynamics": 0.6619911027488795
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_11",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8469903153815532,
+            "layering": 0.7765052496284174,
+            "dynamics": 0.736130026516629
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_12",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8897025107328127,
+            "layering": 0.8143081814392692,
+            "dynamics": 0.5000982975521562
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_13",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9278103933559156,
+            "layering": 0.9114667902233458,
+            "dynamics": 0.7818245043672757
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_14",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.968796993362565,
+            "layering": 0.7237328160820099,
+            "dynamics": 0.8718806551847041
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_15",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8860405004936609,
+            "layering": 0.8766206059019954,
+            "dynamics": 0.612675016389581
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_16",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9862254078309084,
+            "layering": 0.882887338196664,
+            "dynamics": 0.5236455381762046
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_17",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8529938185027345,
+            "layering": 0.9425963084853582,
+            "dynamics": 0.8389581414587606
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_18",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7571578123691207,
+            "layering": 0.6186418813913317,
+            "dynamics": 0.7339384138893005
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341272281_19",
+        "source": "user_auth",
+        "genre": "rock",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7889822560981637,
+            "layering": 0.7557760416726305,
+            "dynamics": 0.9216382502897996
+          }
+        },
+        "timestamp": 1754341272281,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_0",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8024018724250422,
+            "layering": 0.8890524492576619,
+            "dynamics": 0.9814180195974358
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_1",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9574989169683776,
+            "layering": 0.8415356023835233,
+            "dynamics": 0.9338774455347966
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_2",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9916521693087117,
+            "layering": 0.8468813763497235,
+            "dynamics": 0.5787536685122552
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_3",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8505361632651811,
+            "layering": 0.6630152941590488,
+            "dynamics": 0.8552427361168827
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_4",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8784659274833169,
+            "layering": 0.9575634854840226,
+            "dynamics": 0.5797952609787957
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_5",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7819410755135069,
+            "layering": 0.8915160580825006,
+            "dynamics": 0.7334128937183458
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_6",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9121301341916283,
+            "layering": 0.8928475130183371,
+            "dynamics": 0.9070622841853528
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_7",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.7366309089958663,
+            "layering": 0.7257484255960093,
+            "dynamics": 0.6561108137934129
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_8",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9179032755596187,
+            "layering": 0.7051089147753473,
+            "dynamics": 0.7745501674117558
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_9",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9653805200428736,
+            "layering": 0.7295570008560318,
+            "dynamics": 0.8269199188776224
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_10",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.9368958919794865,
+            "layering": 0.7729308135636209,
+            "dynamics": 0.8507949167555752
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_11",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8248570698876561,
+            "layering": 0.8538260689722992,
+            "dynamics": 0.6010590780713664
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_12",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8607105647588479,
+            "layering": 0.7103825085276563,
+            "dynamics": 0.9735987330761744
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_13",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.789458321482036,
+            "layering": 0.7055863853070304,
+            "dynamics": 0.5091663029636774
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "instrument_focused_1753999330514_sample_1754341273402_14",
+        "source": "user_auth",
+        "genre": "electronic",
+        "features": {
+          "instrumentFocus": {
+            "separation": 0.8917722186812135,
+            "layering": 0.7745210067644732,
+            "dynamics": 0.8183304925701782
+          }
+        },
+        "timestamp": 1754341273402,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_bass_1754414380375",
+        "source": "isolated_generation",
+        "genre": "isolated_bass",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "bass",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754414380375,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_bass_1754427520970",
+        "source": "isolated_generation",
+        "genre": "isolated_bass",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "bass",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754427520970,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_drums_1754427534854",
+        "source": "isolated_generation",
+        "genre": "isolated_drums",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "drums",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754427534854,
+        "modelType": "instrument_focused"
+      },
+      {
+        "id": "isolated_lead_guitar_1754427545531",
+        "source": "isolated_generation",
+        "genre": "isolated_lead_guitar",
+        "features": {
+          "instrumentFocus": {
+            "separation": 1,
+            "layering": 0,
+            "dynamics": 0.8
+          },
+          "instrument": "lead_guitar",
+          "tempo": 120,
+          "key": "C",
+          "style": "isolated"
+        },
+        "timestamp": 1754427545531,
+        "modelType": "instrument_focused"
       }
     ],
     "patterns": {
@@ -871,7 +2155,7 @@
           "avg": 120
         },
         "common_keys": {
-          "C": 20
+          "C": 25
         },
         "energy_profile": 0.5
       },
@@ -911,7 +2195,7 @@
           "avg": 120
         },
         "common_keys": {
-          "C": 1
+          "C": 2
         },
         "energy_profile": 0.8
       },
@@ -922,7 +2206,7 @@
           "avg": 120
         },
         "common_keys": {
-          "C": 1
+          "C": 2
         },
         "energy_profile": 0.8
       },
@@ -936,10 +2220,43 @@
           "C": 1
         },
         "energy_profile": 0.8
+      },
+      "isolated_bass": {
+        "tempo_range": {
+          "min": 80,
+          "max": 120,
+          "avg": 100
+        },
+        "common_keys": {
+          "C": 7
+        },
+        "energy_profile": 0.8
+      },
+      "rock": {
+        "tempo_range": {
+          "min": 120,
+          "max": 120,
+          "avg": 120
+        },
+        "common_keys": {
+          "C": 20
+        },
+        "energy_profile": 0.5
+      },
+      "electronic": {
+        "tempo_range": {
+          "min": 120,
+          "max": 120,
+          "avg": 120
+        },
+        "common_keys": {
+          "C": 15
+        },
+        "energy_profile": 0.5
       }
     },
     "weights": {},
-    "lastTrained": "2025-08-04T16:33:19.308Z"
+    "lastTrained": "2025-08-04T21:01:13.402Z"
   },
   "isActive": true
 }
