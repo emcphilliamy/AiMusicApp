@@ -12,34 +12,14 @@ const socketIo = require('socket.io');
 // const { ReggaeConflictResolver, ReggaeQualityAssessmentAI } = require('./reggae-quality-systems');
 // const { ReggaeAudioSynthesizer, ReggaeMixingEngine } = require('./reggae-audio-synthesis');
 
-// Import drum training system
-const { DrumTrainingSystem } = require('./drum-training-system');
-const { ReconstructionDrumTrainer } = require('./reconstruction-drum-trainer');
-const { DirectPatternTrainer } = require('./direct-pattern-trainer');
-
-// Import wavefile for reggae audio synthesis
+// Import wavefile for audio synthesis
 const { WaveFile } = require('wavefile');
 
-// Import isolated instrument generation system
-const { IsolatedAudioGenerator } = require('./generate-isolated-audio');
-
-// ModelManager and IsolatedAudioGenerator will be initialized after class definitions
-
-// Fallback class definitions for when multi-ai-classes.js is not available
+// Fallback class definitions 
 let PromptAnalyzer, InstrumentSelector, MusicalKnowledgeBase;
 
-// Try to import multi-AI classes, use fallbacks if not available
-try {
-  const multiAIClasses = require('./multi-ai-classes.js');
-  PromptAnalyzer = multiAIClasses.PromptAnalyzer;
-  InstrumentSelector = multiAIClasses.InstrumentSelector;
-  MusicalKnowledgeBase = multiAIClasses.MusicalKnowledgeBase;
-  console.log('✅ Multi-AI classes loaded successfully');
-} catch (error) {
-  console.warn('⚠️ Multi-AI classes not found, using fallback implementations');
-  
-  // Fallback implementations
-  PromptAnalyzer = class {
+// Fallback implementations
+PromptAnalyzer = class {
     async analyze(prompt) {
       return {
         mood: { primary: 'energetic', intensity: 0.7 },
@@ -1598,9 +1578,9 @@ class MasterConductorAI {
   }
 }
 
-// Initialize ModelManager and IsolatedAudioGenerator after class definitions
+// Initialize ModelManager after class definitions
 const modelManager = new ModelManager();
-const isolatedGenerator = new IsolatedAudioGenerator(modelManager);
+// DISABLED: IsolatedAudioGenerator was removed
 
 // Initialize models and ensure they have training data
 const initializeModels = async () => {
@@ -4103,7 +4083,7 @@ class SpotifyAPI {
 const spotifyAPI = new SpotifyAPI();
 
 // Initialize drum training system
-const drumTrainingSystem = new DrumTrainingSystem(spotifyAPI);
+// DISABLED: DrumTrainingSystem was removed
 
 // Initialize reconstruction drum trainer (will be created when needed)
 let reconstructionTrainer = null;
@@ -5728,9 +5708,8 @@ app.post('/api/train-drums-reconstruction', async (req, res) => {
     }
     
     // Step 2: Initialize reconstruction trainer with realistic drum synthesis
-    const { RealisticDrumSynthesis } = require('./realistic-drum-synthesis');
-    const realisticDrumSynthesis = new RealisticDrumSynthesis();
-    reconstructionTrainer = new ReconstructionDrumTrainer(spotifyAPI, realisticDrumSynthesis);
+    // DISABLED: RealisticDrumSynthesis and ReconstructionDrumTrainer were removed
+    reconstructionTrainer = null;
     
     console.log(`🎵 Found ${drumTracks.length} tracks for reconstruction training`);
     
