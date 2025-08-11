@@ -42,3 +42,11 @@ coverage/
 # Build directories
 dist/
 build/
+
+# Large files and archives
+*.tar.gz
+*.zip
+*.7z
+*.rar
+*.tar
+*.tgz
