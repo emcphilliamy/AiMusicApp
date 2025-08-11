@@ -34,9 +34,10 @@ class WavExporter {
    * @param {Object} config.instrumentData - Selected instrument data
    * @param {string} config.outputPath - Output file path
    * @param {string} config.songName - Song name for metadata
+   * @param {Object} config.generationMetadata - Additional generation metadata
    * @returns {Promise<void>}
    */
-  async export({ pattern, timingConfig, instrumentData, outputPath, songName }) {
+  async export({ pattern, timingConfig, instrumentData, outputPath, songName, generationMetadata = {} }) {
     console.log(`🎙️  Exporting ${pattern.events.length} events to WAV...`);
     console.log(`📊 Target: ${this.targetSampleRate}Hz, ${this.bitDepth}-bit, ${this.channels} channel(s)`);
     
@@ -52,6 +53,16 @@ class WavExporter {
       
       // Write to file
       await this.writeWavFile(wavFile, outputPath);
+      
+      // Generate metadata file
+      await this.exportMetadata({ 
+        pattern, 
+        timingConfig, 
+        instrumentData, 
+        outputPath, 
+        songName, 
+        generationMetadata 
+      });
       
       // Validate output
       await this.validateOutput(outputPath, timingConfig);
@@ -158,19 +169,42 @@ class WavExporter {
       const wav = new WaveFile();
       wav.fromBuffer(audioData.buffer);
       
-      // Get samples as float32 array
+      // Get samples as float32 array (normalized to -1 to 1)
       const samples = wav.getSamples(true, Float32Array);
+      
+      // Ensure samples are properly normalized to ±1.0 range
+      // If they come in as integer values, normalize them
+      const normalizeIfNeeded = (sampleArray) => {
+        if (!sampleArray || sampleArray.length === 0) return sampleArray;
+        
+        // Convert to array if it's not already (some samples might be typed arrays)
+        const arrayToCheck = Array.isArray(sampleArray) ? sampleArray : Array.from(sampleArray);
+        const checkLength = Math.min(1000, arrayToCheck.length);
+        const maxValue = Math.max(...arrayToCheck.slice(0, checkLength));
+        
+        // If samples appear to be in integer range (> 1), normalize them
+        if (maxValue > 1.5) {
+          const scale = 1.0 / Math.pow(2, wav.fmt.bitsPerSample - 1);
+          return sampleArray.map(sample => sample * scale);
+        }
+        
+        return sampleArray;
+      };
       
       // Handle stereo to mono conversion if needed
       let monoSamples;
-      if (wav.fmt.numChannels === 2 && samples.length === 2) {
+      if (wav.fmt.numChannels === 2 && Array.isArray(samples) && samples.length === 2) {
         // Convert stereo to mono by averaging channels
-        monoSamples = new Float32Array(samples[0].length);
-        for (let i = 0; i < samples[0].length; i++) {
-          monoSamples[i] = (samples[0][i] + samples[1][i]) * 0.5;
+        const leftNormalized = normalizeIfNeeded(samples[0]);
+        const rightNormalized = normalizeIfNeeded(samples[1]);
+        
+        monoSamples = new Float32Array(leftNormalized.length);
+        for (let i = 0; i < leftNormalized.length; i++) {
+          monoSamples[i] = (leftNormalized[i] + rightNormalized[i]) * 0.5;
         }
       } else {
-        monoSamples = samples[0] || samples;
+        // For mono samples, samples is a Float32Array directly, not an array of channels
+        monoSamples = normalizeIfNeeded(samples);
       }
       
       // Resample if necessary
@@ -216,9 +250,17 @@ class WavExporter {
    * @private
    */
   calculateVelocityGain(velocity) {
+    // Protect against invalid velocity values
+    if (!isFinite(velocity) || velocity == null) {
+      console.log(`⚠️  Invalid velocity ${velocity}, using default 0.8`);
+      velocity = 0.8; // Default velocity
+    }
+    
     // Apply exponential curve for more musical velocity response
     const normalizedVelocity = Math.max(0, Math.min(1, velocity));
-    return Math.pow(normalizedVelocity, 1 / this.velocityCurve);
+    const result = Math.pow(normalizedVelocity, 1 / this.velocityCurve);
+    
+    return result;
   }
 
   /**
@@ -243,7 +285,8 @@ class WavExporter {
       const bufferIndex = startPosition + i;
       const sampleIndex = i;
       
-      let sample = sampleAudio[sampleIndex] * finalGain;
+      const rawSample = sampleAudio[sampleIndex];
+      let sample = rawSample * finalGain;
       
       // Apply fade in
       if (i < this.fadeInSamples) {
@@ -273,7 +316,10 @@ class WavExporter {
     // Find peak level for normalization
     let peak = 0;
     for (let i = 0; i < audioBuffer.length; i++) {
-      peak = Math.max(peak, Math.abs(audioBuffer[i]));
+      const sample = audioBuffer[i];
+      if (isFinite(sample)) {
+        peak = Math.max(peak, Math.abs(sample));
+      }
     }
     
     // Apply soft limiting if needed
@@ -401,10 +447,16 @@ class WavExporter {
       console.log(`   Duration: ${actualDuration.toFixed(3)}s (expected ${expectedDuration.toFixed(3)}s)`);
       console.log(`   Duration Error: ${(durationError * 1000).toFixed(2)}ms`);
       
-      // Check filename format
+      // Check filename format (DB for drum-based, MB for melodic-based)
       const filename = path.basename(outputPath);
-      if (!filename.endsWith('-drums1.wav')) {
-        console.warn(`⚠️  Filename doesn't match required format: ${filename}`);
+      if (filename.includes('-DB.wav')) {
+        console.log(`📊 Drum-based pattern file format: ${filename}`);
+      } else if (filename.includes('-MB.wav')) {
+        console.log(`🎵 Melodic-based pattern file format: ${filename}`);
+      } else if (filename.endsWith('.wav')) {
+        console.log(`🎵 Instrument file format: ${filename}`);
+      } else {
+        console.warn(`⚠️  Unexpected filename format: ${filename}`);
       }
       
       // Timing accuracy check (±1ms tolerance)
@@ -445,6 +497,266 @@ class WavExporter {
     }
     
     return `${size.toFixed(1)} ${units[unitIndex]}`;
+  }
+
+  /**
+   * Export detailed metadata file alongside WAV
+   * @param {Object} config - Metadata export configuration
+   */
+  async exportMetadata({ pattern, timingConfig, instrumentData, outputPath, songName, generationMetadata }) {
+    const metadataPath = outputPath.replace('.wav', '.md');
+    
+    try {
+      // Collect all generation data
+      const metadata = await this.collectMetadata({
+        pattern,
+        timingConfig,
+        instrumentData,
+        outputPath,
+        songName,
+        generationMetadata
+      });
+      
+      // Format metadata as readable text
+      const metadataText = this.formatMetadata(metadata);
+      
+      // Write metadata file
+      fs.writeFileSync(metadataPath, metadataText, 'utf8');
+      
+      console.log(`📝 Metadata exported: ${path.basename(metadataPath)}`);
+      
+    } catch (error) {
+      console.error(`❌ Metadata export failed:`, error);
+      // Don't throw - WAV export should continue even if metadata fails
+    }
+  }
+
+  /**
+   * Collect comprehensive metadata about the generation
+   * @private
+   */
+  async collectMetadata({ pattern, timingConfig, instrumentData, outputPath, songName, generationMetadata }) {
+    const stats = fs.existsSync(outputPath) ? fs.statSync(outputPath) : null;
+    
+    // Analyze pattern events
+    const eventAnalysis = this.analyzePatternEvents(pattern);
+    
+    // Get instrument details
+    const instrumentDetails = this.getInstrumentDetails(instrumentData);
+    
+    return {
+      // Basic file info
+      fileName: path.basename(outputPath),
+      songName: songName,
+      generatedAt: new Date().toISOString(),
+      fileSize: stats ? this.formatFileSize(stats.size) : 'Unknown',
+      
+      // Audio specifications
+      audioFormat: {
+        sampleRate: this.targetSampleRate,
+        bitDepth: this.bitDepth,
+        channels: this.channels,
+        duration: timingConfig.totalDurationMs / 1000
+      },
+      
+      // Timing configuration
+      timing: {
+        bpm: timingConfig.bpm,
+        timeSignature: timingConfig.timeSignature || '4/4',
+        totalBeats: timingConfig.totalBeats,
+        totalSteps: timingConfig.totalSteps,
+        swing: timingConfig.styleRules?.swing || 0,
+        stepResolution: timingConfig.stepResolution || 16
+      },
+      
+      // Pattern analysis
+      pattern: {
+        totalEvents: pattern.events.length,
+        activeEvents: eventAnalysis.activeEvents,
+        ghostEvents: eventAnalysis.ghostEvents,
+        velocityRange: eventAnalysis.velocityRange,
+        noteDistribution: eventAnalysis.noteDistribution,
+        timingDistribution: eventAnalysis.timingDistribution
+      },
+      
+      // Instrument information
+      instruments: instrumentDetails,
+      
+      // Generation metadata
+      generation: {
+        style: generationMetadata.style || 'Unknown',
+        seed: generationMetadata.seed || 'Random',
+        algorithm: generationMetadata.algorithm || 'Standard',
+        parameters: generationMetadata.parameters || {},
+        testType: generationMetadata.testType || 'Manual'
+      },
+      
+      // Processing details
+      processing: {
+        masterVolume: this.masterVolume,
+        velocityCurve: this.velocityCurve,
+        fadeInSamples: this.fadeInSamples,
+        fadeOutSamples: this.fadeOutSamples,
+        normalization: 'Applied',
+        softLimiting: 'Applied if needed'
+      }
+    };
+  }
+
+  /**
+   * Analyze pattern events for statistics
+   * @private
+   */
+  analyzePatternEvents(pattern) {
+    const events = pattern.events || [];
+    
+    let activeEvents = 0;
+    let ghostEvents = 0;
+    let velocities = [];
+    let noteDistribution = {};
+    let timingDistribution = {};
+    
+    events.forEach(event => {
+      if (event.ghost) {
+        ghostEvents++;
+      } else {
+        activeEvents++;
+      }
+      
+      velocities.push(event.velocity || 0.8);
+      
+      // Note distribution
+      const note = event.note || 'Unknown';
+      noteDistribution[note] = (noteDistribution[note] || 0) + 1;
+      
+      // Timing distribution (rounded to nearest 0.1)
+      const timing = Math.round((event.position || 0) * 10) / 10;
+      timingDistribution[timing] = (timingDistribution[timing] || 0) + 1;
+    });
+    
+    const minVelocity = velocities.length > 0 ? Math.min(...velocities) : 0;
+    const maxVelocity = velocities.length > 0 ? Math.max(...velocities) : 0;
+    const avgVelocity = velocities.length > 0 ? velocities.reduce((a, b) => a + b, 0) / velocities.length : 0;
+    
+    return {
+      activeEvents,
+      ghostEvents,
+      velocityRange: {
+        min: minVelocity,
+        max: maxVelocity,
+        average: avgVelocity
+      },
+      noteDistribution,
+      timingDistribution
+    };
+  }
+
+  /**
+   * Get detailed instrument information
+   * @private
+   */
+  getInstrumentDetails(instrumentData) {
+    const instruments = [];
+    
+    if (instrumentData.noteMapping) {
+      Object.entries(instrumentData.noteMapping).forEach(([note, sample]) => {
+        // Extract filename from path
+        const filename = sample.path ? sample.path.split('/').pop() : 'Unknown';
+        
+        instruments.push({
+          note: note,
+          instrumentFamily: sample.instrumentFamily || instrumentData.type || 'Unknown',
+          instrumentName: sample.instrumentFamily || instrumentData.type || 'Unknown',
+          sampleFile: filename,
+          nsynthNote: `${sample.pitch || 'Unknown'}-${sample.velocity || 'Unknown'}`,
+          noteType: sample.noteType || note
+        });
+      });
+    }
+    
+    return instruments;
+  }
+
+  /**
+   * Format metadata as human-readable text
+   * @private
+   */
+  formatMetadata(metadata) {
+    return `# ${metadata.generation.style.toUpperCase()} | ${metadata.instruments[0]?.instrumentFamily?.toUpperCase() || 'UNKNOWN'} | ${metadata.timing.bpm} BPM
+
+## Beat Generator - Audio File Metadata
+
+## File Information
+- File Name: ${metadata.fileName}
+- Song Name: ${metadata.songName}
+- Generated: ${new Date(metadata.generatedAt).toLocaleString()}
+- File Size: ${metadata.fileSize}
+
+## Audio Specifications
+- Sample Rate: ${metadata.audioFormat.sampleRate}Hz
+- Bit Depth: ${metadata.audioFormat.bitDepth}-bit
+- Channels: ${metadata.audioFormat.channels} (Mono)
+- Duration: ${metadata.audioFormat.duration.toFixed(3)} seconds
+
+## Timing Configuration
+- BPM: ${metadata.timing.bpm}
+- Time Signature: ${metadata.timing.timeSignature}
+- Total Beats: ${metadata.timing.totalBeats}
+- Total Steps: ${metadata.timing.totalSteps}
+- Step Resolution: ${metadata.timing.stepResolution} (steps per beat)
+- Swing: ${metadata.timing.swing > 0 ? `${(metadata.timing.swing * 100).toFixed(1)}%` : 'None'}
+
+## Pattern Analysis
+- Total Events: ${metadata.pattern.totalEvents}
+- Active Events: ${metadata.pattern.activeEvents}
+- Ghost Events: ${metadata.pattern.ghostEvents}
+- Velocity Range: ${metadata.pattern.velocityRange.min.toFixed(2)} - ${metadata.pattern.velocityRange.max.toFixed(2)} (avg: ${metadata.pattern.velocityRange.average.toFixed(2)})
+
+### Note Distribution:
+${Object.entries(metadata.pattern.noteDistribution)
+  .map(([note, count]) => `- ${note}: ${count} hits`)
+  .join('\n')}
+
+### Timing Distribution (position in pattern):
+${Object.entries(metadata.pattern.timingDistribution)
+  .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
+  .slice(0, 10) // Show first 10 positions
+  .map(([position, count]) => `- ${position}: ${count} events`)
+  .join('\n')}${Object.keys(metadata.pattern.timingDistribution).length > 10 ? '\n- ... (showing first 10 positions)' : ''}
+
+## Instruments Used
+${metadata.instruments.map((inst, index) => `
+### Instrument ${index + 1} - ${inst.noteType}
+- Note Mapping: ${inst.note}
+- Instrument Family: ${inst.instrumentFamily}
+- Note Type: ${inst.noteType} 
+- NSynth Sample: ${inst.nsynthNote}
+- Sample File: ${inst.sampleFile}`).join('')}
+
+## Generation Details
+- Style: ${metadata.generation.style}
+- Test Type: ${metadata.generation.testType}
+- Seed: ${metadata.generation.seed}
+- Algorithm: ${metadata.generation.algorithm}
+- Parameters: ${JSON.stringify(metadata.generation.parameters, null, 2)}
+
+## Audio Processing Applied
+- Master Volume: ${metadata.processing.masterVolume}
+- Velocity Curve: ${metadata.processing.velocityCurve}
+- Fade In/Out: ${metadata.processing.fadeInSamples}/${metadata.processing.fadeOutSamples} samples
+- Normalization: ${metadata.processing.normalization}
+- Soft Limiting: ${metadata.processing.softLimiting}
+
+## Technical Notes
+- NSynth samples are normalized from integer range to ±1.0 float range
+- Ghost notes are processed at 30% volume of regular velocity
+- All samples resampled to ${metadata.audioFormat.sampleRate}Hz if needed
+- Stereo samples converted to mono by channel averaging
+- Sample-accurate timing with ±1ms precision target
+
+---
+Generated by AI Music Backend v1.0 - Beat Generator Module
+`;
   }
 
   /**

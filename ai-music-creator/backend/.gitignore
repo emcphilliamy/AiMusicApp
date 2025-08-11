@@ -1,0 +1,26 @@
+# Debug files
+debug-*.js
+analyze-*.js
+
+# Generated output directories
+generated/
+debug/
+
+# Test files (keep only the main ones)
+test-audio-loading.js
+test-resampling.js
+test-simple-beat.js
+
+# Utility files
+update-md-headers.js
+
+# Node modules (if any)
+node_modules/
+
+# OS files
+.DS_Store
+*.log
+
+# Temporary files
+*.tmp
+*.temp

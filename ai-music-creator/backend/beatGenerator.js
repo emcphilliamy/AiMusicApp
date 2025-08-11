@@ -16,6 +16,7 @@ const crypto = require('crypto');
 // Import modular components
 const { TimingEngine } = require('./modules/timingEngine');
 const { PatternGenerator } = require('./modules/patternGenerator');
+const { MelodicPatternGenerator } = require('./modules/melodicPatternGenerator');
 const { InstrumentSelector } = require('./modules/instrumentSelector');
 const { WavExporter } = require('./modules/wavExporter');
 
@@ -27,6 +28,7 @@ class BeatGenerator {
   constructor() {
     this.timingEngine = new TimingEngine();
     this.patternGenerator = new PatternGenerator();
+    this.melodicPatternGenerator = new MelodicPatternGenerator();
     this.instrumentSelector = new InstrumentSelector();
     this.wavExporter = new WavExporter();
     
@@ -77,15 +79,56 @@ class BeatGenerator {
       
       console.log(`⏰ Timing configured: ${timingConfig.stepsPerBar} steps/bar, ${timingConfig.totalSteps} total steps`);
       
-      // Step 2: Generate pattern based on style and timing
-      const pattern = this.patternGenerator.generate({
-        keyword: config.keyword,
-        timingConfig: timingConfig,
-        seed: config.seed
-      });
+      // Step 2: Generate pattern based on instrument type and style
+      let pattern;
       
-      console.log(`🥁 Pattern generated: ${pattern.events.length} events`);
-      this.printPatternGrid(pattern, timingConfig);
+      // Check if instrument should use melodic patterns instead of drum patterns
+      if (config.instrument !== 'auto' && MelodicPatternGenerator.isMelodicInstrument(config.instrument)) {
+        console.log(`🎼 Generating melodic pattern for ${config.instrument}...`);
+        
+        // Generate melodic pattern using music theory
+        const melodicResult = this.melodicPatternGenerator.generateMelodicPattern({
+          instrument: config.instrument,
+          genre: config.keyword,
+          bpm: config.bpm,
+          bars: config.bars,
+          key: 'C', // Default to C major for now
+          seed: config.seed
+        });
+        
+        // Convert melodic pattern to compatible format
+        // Calculate total pattern duration in beats (bars * 4 beats per bar)
+        const totalDurationBeats = config.bars * 4;
+        
+        pattern = {
+          events: melodicResult.events.map(event => ({
+            note: event.note, // MIDI note number instead of drum name
+            time: event.time,
+            position: event.time / totalDurationBeats, // Convert time to normalized position (0-1)
+            velocity: event.velocity,
+            duration: event.duration,
+            isMelodicNote: true // Flag to identify melodic notes
+          })),
+          metadata: melodicResult.metadata
+        };
+        
+        console.log(`🎵 Melodic pattern generated: ${pattern.events.length} events`);
+        console.log(`🎼 Key: ${melodicResult.metadata.key} ${melodicResult.metadata.mode}`);
+        console.log(`🎵 Progression: ${melodicResult.metadata.progression.join(' - ')}`);
+        
+      } else {
+        // Generate traditional drum pattern
+        console.log(`🥁 Generating drum pattern...`);
+        
+        pattern = this.patternGenerator.generate({
+          keyword: config.keyword,
+          timingConfig: timingConfig,
+          seed: config.seed
+        });
+        
+        console.log(`🥁 Pattern generated: ${pattern.events.length} events`);
+        this.printPatternGrid(pattern, timingConfig);
+      }
       
       // Step 3: Select appropriate instrument samples
       const instrumentData = await this.instrumentSelector.select({
@@ -97,15 +140,39 @@ class BeatGenerator {
       console.log(`🎹 Instrument selected: ${instrumentData.type} (${instrumentData.samples.length} samples)`);
       
       // Step 4: Create timing-accurate WAV file
-      const outputFilename = `${config.songName}-drums1.wav`;
+      // Add suffix based on pattern type: DB (Drum-Based) or MB (Melodic-Based)
+      const suffix = config.instrument === 'auto' ? '-DB' : '-MB';
+      const outputFilename = `${config.songName}${suffix}.wav`;
       const outputPath = path.join(config.outputPath, outputFilename);
+      
+      // Collect comprehensive generation metadata
+      const generationMetadata = {
+        style: config.keyword,
+        seed: config.seed || 'Random',
+        algorithm: 'Modular Pattern Generator',
+        testType: this.getTestType(config.songName),
+        parameters: {
+          bpm: config.bpm,
+          timeSignature: config.timeSignature,
+          bars: config.bars,
+          instrument: config.instrument,
+          outputPath: config.outputPath
+        },
+        patternInfo: {
+          totalEvents: pattern.events.length,
+          patternComplexity: this.calculatePatternComplexity(pattern),
+          dominantNotes: this.getDominantNotes(pattern)
+        },
+        generatedAt: new Date().toISOString()
+      };
       
       await this.wavExporter.export({
         pattern: pattern,
         timingConfig: timingConfig,
         instrumentData: instrumentData,
         outputPath: outputPath,
-        songName: config.songName
+        songName: config.songName,
+        generationMetadata: generationMetadata
       });
       
       console.log(`✅ Beat generated successfully: ${outputPath}`);
@@ -217,6 +284,66 @@ class BeatGenerator {
     if (event.velocity >= 0.8) return 'X'; // Accent
     if (event.velocity <= 0.3) return 'g'; // Ghost note
     return 'x'; // Normal hit
+  }
+
+  /**
+   * Determine test type based on song name
+   * @private
+   */
+  getTestType(songName) {
+    if (songName.includes('TimingTest')) return 'Timing Accuracy Test';
+    if (songName.includes('StyleTest')) return 'Style Implementation Test';
+    if (songName.includes('ModuleTest')) return 'Module Integration Test';
+    if (songName.includes('EdgeTest')) return 'Edge Case Test';
+    if (songName.includes('TrailSong') || songName.includes('LateNight') || songName.includes('HouseTest')) {
+      return 'Required Example Test';
+    }
+    return 'Manual Generation';
+  }
+
+  /**
+   * Calculate pattern complexity score
+   * @private
+   */
+  calculatePatternComplexity(pattern) {
+    if (!pattern.events || pattern.events.length === 0) return 0;
+    
+    // Factors: event count, velocity variation, timing variation, ghost notes
+    const eventCount = pattern.events.length;
+    const velocities = pattern.events.map(e => e.velocity || 0.8);
+    const velocityVariation = Math.max(...velocities) - Math.min(...velocities);
+    const ghostNotes = pattern.events.filter(e => e.ghost).length;
+    const uniqueTimings = new Set(pattern.events.map(e => Math.round((e.position || 0) * 16))).size;
+    
+    // Normalize to 0-1 scale
+    const complexityScore = Math.min(1, 
+      (eventCount / 32) * 0.4 +           // Event density (max 32 events)
+      velocityVariation * 0.3 +           // Dynamic range
+      (ghostNotes / eventCount) * 0.2 +   // Ghost note ratio
+      (uniqueTimings / 16) * 0.1          // Timing diversity
+    );
+    
+    return Math.round(complexityScore * 100) / 100; // Round to 2 decimals
+  }
+
+  /**
+   * Get dominant notes in pattern
+   * @private
+   */
+  getDominantNotes(pattern) {
+    if (!pattern.events || pattern.events.length === 0) return [];
+    
+    const noteCounts = {};
+    pattern.events.forEach(event => {
+      const note = event.note || 'Unknown';
+      noteCounts[note] = (noteCounts[note] || 0) + 1;
+    });
+    
+    // Sort by frequency and return top 3
+    return Object.entries(noteCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([note, count]) => ({ note, count, percentage: Math.round((count / pattern.events.length) * 100) }));
   }
 }
 

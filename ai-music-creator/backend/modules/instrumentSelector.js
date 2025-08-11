@@ -188,6 +188,12 @@ class InstrumentSelector {
   async selectSpecificInstrument(instrument, pattern, stylePrefs) {
     console.log(`🎯 Using specific instrument: ${instrument}`);
     
+    // Map deprecated/unavailable instruments to working alternatives
+    if (instrument === 'piano') {
+      console.log(`🔄 Piano samples unavailable, defaulting to keyboard`);
+      instrument = 'keyboard';
+    }
+    
     // Check if it's a file path
     if (instrument.includes('.wav') || instrument.includes('/')) {
       return await this.loadSpecificFile(instrument, pattern);
@@ -200,7 +206,15 @@ class InstrumentSelector {
       const samples = {};
       
       for (const noteType of Object.keys(noteTypes)) {
-        const sample = await this.loadSampleForNote(noteType, instrument, stylePrefs);
+        let sample;
+        
+        // Handle melodic notes differently than drum notes
+        if (noteTypes[noteType].isMelodicNote) {
+          sample = await this.loadMelodicSample(parseInt(noteType), instrument, stylePrefs);
+        } else {
+          sample = await this.loadSampleForNote(noteType, instrument, stylePrefs);
+        }
+        
         if (sample) {
           samples[noteType] = sample;
         }
@@ -226,16 +240,25 @@ class InstrumentSelector {
     const noteTypes = {};
     
     pattern.events.forEach(event => {
-      if (!noteTypes[event.note]) {
-        noteTypes[event.note] = {
+      // Handle both drum notes (strings) and melodic notes (MIDI numbers)
+      let noteKey = event.note;
+      
+      // For melodic notes (MIDI numbers), group by pitch class or use individual notes
+      if (typeof event.note === 'number') {
+        noteKey = event.note; // Use exact MIDI note number for melodic instruments
+      }
+      
+      if (!noteTypes[noteKey]) {
+        noteTypes[noteKey] = {
           count: 0,
           maxVelocity: 0,
           minVelocity: 1,
-          avgVelocity: 0
+          avgVelocity: 0,
+          isMelodicNote: event.isMelodicNote || false
         };
       }
       
-      const note = noteTypes[event.note];
+      const note = noteTypes[noteKey];
       note.count++;
       note.maxVelocity = Math.max(note.maxVelocity, event.velocity);
       note.minVelocity = Math.min(note.minVelocity, event.velocity);
@@ -299,6 +322,63 @@ class InstrumentSelector {
     
     console.log(`📊 Instrument family scores:`, scores);
     return bestFamily;
+  }
+
+  /**
+   * Load NSynth sample for a specific MIDI note (melodic instruments)
+   * @private
+   */
+  async loadMelodicSample(midiNote, instrumentFamily, stylePrefs) {
+    console.log(`🎵 Loading melodic sample: MIDI ${midiNote} for ${instrumentFamily}`);
+    
+    // Get available notes for this instrument
+    const availableNotes = this.nsynthDownloader.getInstrumentNotes(instrumentFamily);
+    if (availableNotes.length === 0) {
+      console.warn(`⚠️  No samples available for ${instrumentFamily}`);
+      return null;
+    }
+    
+    // Find exact pitch match first
+    let selectedNote = availableNotes.find(note => note.pitch === midiNote);
+    
+    if (!selectedNote) {
+      // If no exact match, find closest pitch
+      selectedNote = availableNotes.reduce((closest, note) => {
+        const currentDiff = Math.abs(note.pitch - midiNote);
+        const closestDiff = Math.abs(closest.pitch - midiNote);
+        return currentDiff < closestDiff ? note : closest;
+      });
+      
+      console.log(`🔄 Using closest match: MIDI ${selectedNote.pitch} for requested ${midiNote}`);
+    }
+    
+    // Prefer higher velocities for melodic instruments (better sound quality)
+    const suitableVelocity = availableNotes
+      .filter(note => note.pitch === selectedNote.pitch)
+      .sort((a, b) => b.velocity - a.velocity)[0]; // Get highest velocity for this pitch
+    
+    if (suitableVelocity) {
+      selectedNote = suitableVelocity;
+    }
+    
+    // Load the audio data
+    const sampleData = await this.loadSampleFile(selectedNote.path);
+    
+    if (!sampleData) {
+      console.warn(`⚠️  Failed to load melodic sample for MIDI ${midiNote}`);
+      return null;
+    }
+    
+    return {
+      noteType: midiNote,
+      midiNote: midiNote,
+      instrumentFamily: instrumentFamily,
+      pitch: selectedNote.pitch,
+      velocity: selectedNote.velocity,
+      path: selectedNote.path,
+      audioData: sampleData,
+      isMelodicSample: true
+    };
   }
 
   /**
