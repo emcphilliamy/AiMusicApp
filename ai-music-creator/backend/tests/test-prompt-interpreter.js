@@ -1,5 +1,5 @@
-const { PromptInterpreter } = require('./modules/promptInterpreter');
-const { BeatGenerator } = require('./beatGenerator');
+const { PromptInterpreter } = require('../modules/promptInterpreter');
+const { BeatGenerator } = require('../core/beatGenerator');
 
 console.log('🎭 Prompt Interpreter Test Suite');
 console.log('================================');

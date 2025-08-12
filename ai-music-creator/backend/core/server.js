@@ -8,7 +8,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 // Import NSynth dataset downloader
-const { NSynthDownloader } = require('./nsynth-downloader');
+const { NSynthDownloader } = require('../integrations/nsynth-downloader');
 
 const app = express();
 const PORT = process.env.PORT || 3001;

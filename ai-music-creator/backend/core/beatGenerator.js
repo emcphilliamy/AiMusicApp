@@ -14,12 +14,12 @@ const { WaveFile } = require('wavefile');
 const crypto = require('crypto');
 
 // Import modular components
-const { TimingEngine } = require('./modules/timingEngine');
-const { PatternGenerator } = require('./modules/patternGenerator');
-const { MelodicPatternGenerator } = require('./modules/melodicPatternGenerator');
-const { InstrumentSelector } = require('./modules/instrumentSelector');
-const { WavExporter } = require('./modules/wavExporter');
-const { PromptInterpreter } = require('./modules/promptInterpreter');
+const { TimingEngine } = require('../modules/timingEngine');
+const { PatternGenerator } = require('../modules/patternGenerator');
+const { MelodicPatternGenerator } = require('../modules/melodicPatternGenerator');
+const { InstrumentSelector } = require('../modules/instrumentSelector');
+const { WavExporter } = require('../modules/wavExporter');
+const { PromptInterpreter } = require('../modules/promptInterpreter');
 
 /**
  * Main Beat Generator class

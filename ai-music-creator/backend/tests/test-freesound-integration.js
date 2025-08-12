@@ -1,5 +1,5 @@
-const { PromptBeatGenerator } = require('./promptBeatGenerator');
-const { FreesoundDownloader } = require('./freesound-downloader');
+const { PromptBeatGenerator } = require('../core/promptBeatGenerator');
+const { FreesoundDownloader } = require('../integrations/freesound-downloader');
 
 console.log('🎵 Testing Freesound + NSynth Integration');
 console.log('=======================================');

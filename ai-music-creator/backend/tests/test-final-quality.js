@@ -1,4 +1,4 @@
-const { PromptBeatGenerator } = require('./promptBeatGenerator');
+const { PromptBeatGenerator } = require('../core/promptBeatGenerator');
 
 console.log('🎸 Final Audio Quality Test');
 console.log('==========================');

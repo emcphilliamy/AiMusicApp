@@ -10,8 +10,8 @@
 
 const path = require('path');
 const fs = require('fs');
-const { NSynthDownloader } = require('../nsynth-downloader');
-const { FreesoundLoader } = require('./freesoundLoader');
+const { NSynthDownloader } = require('../integrations/nsynth-downloader');
+const { FreesoundLoader } = require('../integrations/freesoundLoader');
 
 class InstrumentSelector {
   constructor() {

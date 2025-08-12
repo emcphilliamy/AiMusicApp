@@ -9,7 +9,7 @@
  * - Edge case handling
  */
 
-const { generateBeat } = require('./beatGenerator');
+const { generateBeat } = require('../core/beatGenerator');
 const fs = require('fs');
 const path = require('path');
 const { WaveFile } = require('wavefile');
