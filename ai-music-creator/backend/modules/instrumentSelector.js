@@ -61,6 +61,18 @@ class InstrumentSelector {
         pitchRange: [79, 91], // G5 to G6 - very high
         preferredPitch: 84, // C6
         velocity: [90, 127]
+      },
+      'cross-stick': {
+        instruments: ['mallet', 'string', 'keyboard'], // Subtle, woody sounds
+        pitchRange: [52, 64], // E3 to E4 - mid range
+        preferredPitch: 58, // A#3
+        velocity: [40, 80]
+      },
+      perc: {
+        instruments: ['mallet', 'brass', 'string'], // General percussion
+        pitchRange: [60, 72], // C4 to C5 - mid-high range
+        preferredPitch: 66, // F#4
+        velocity: [50, 90]
       }
     };
     

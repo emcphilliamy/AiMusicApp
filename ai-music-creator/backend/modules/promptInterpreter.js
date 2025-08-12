@@ -137,6 +137,9 @@ class PromptInterpreter {
     // Expand unknown adjectives to lexicon for future use
     this.expandLexicon(adjectives, adjectiveParams);
     
+    // Add detected adjectives for genre analysis
+    finalParams.detectedAdjectives = adjectives;
+    
     // Add Spotify warnings to final parameters
     if (spotifyWarnings.length > 0) {
       finalParams.spotifyWarnings = spotifyWarnings;
@@ -441,29 +444,69 @@ class PromptInterpreter {
     const bpm = interpretedParams.bpm ? 
       Math.round((interpretedParams.bpm[0] + interpretedParams.bpm[1]) / 2) : 120;
     
-    // Map scale to genre/keyword for existing system
-    const scaleGenreMap = {
-      'major': 'pop',
-      'minor': 'jazz',
-      'blues': 'blues',
-      'dorian': 'jazz',
-      'mixolydian': 'funk',
-      'lydian': 'ambient',
-      'aeolian': 'lo-fi',
-      'phrygian': 'aggressive'
-    };
+    // Determine genre from detected characteristics
+    let keyword = 'default';
     
-    const keyword = scaleGenreMap[interpretedParams.scale] || 'default';
+    // Priority 1: Direct genre match from adjectives
+    if (interpretedParams.detectedAdjectives) {
+      for (const adj of interpretedParams.detectedAdjectives) {
+        if (['funky', 'beach', 'vibe', 'jazz', 'blues', 'reggae', 'country', 'house', 'techno'].includes(adj)) {
+          keyword = adj;
+          break;
+        }
+      }
+    }
+    
+    // Priority 2: Infer from rhythm characteristics
+    if (keyword === 'default') {
+      if (interpretedParams.rhythm) {
+        const rhythmGenreMap = {
+          'syncopated': 'funk',
+          'laid-back': 'beach',
+          'swing': 'jazz',
+          'shuffle': 'country',
+          'four-on-floor': 'house',
+          'boom-bap': 'hiphop',
+          'skank': 'reggae',
+          'flowing': 'ambient'
+        };
+        keyword = rhythmGenreMap[interpretedParams.rhythm] || 'default';
+      }
+    }
+    
+    // Priority 3: Scale-based fallback (refined)
+    if (keyword === 'default') {
+      const scaleGenreMap = {
+        'major': 'pop',
+        'minor': 'jazz', 
+        'blues': 'blues',
+        'dorian': 'funk',
+        'mixolydian': 'funk',
+        'lydian': 'ambient',
+        'aeolian': 'lo-fi',
+        'phrygian': 'aggressive'
+      };
+      keyword = scaleGenreMap[interpretedParams.scale] || 'default';
+    }
     
     // Use only first detected instrument (single instrument focus)
     const instrument = interpretedParams.instruments && interpretedParams.instruments.length > 0 ?
       interpretedParams.instruments[0] : 'auto';
     
+    // Determine bars based on energy and genre characteristics
+    let bars = 1;
+    if (interpretedParams.energy > 0.7) bars = 2;
+    if (['funk', 'house', 'techno'].includes(keyword)) bars = Math.max(bars, 2); // Groovy genres need more space
+    
     return {
       bpm: bpm,
       keyword: keyword,
       instrument: instrument,
-      bars: interpretedParams.energy > 0.7 ? 2 : 1, // More bars for high energy
+      bars: bars,
+      genreCharacteristics: interpretedParams.characteristics || {},
+      rhythm: interpretedParams.rhythm,
+      mood: interpretedParams.mood,
+      energy: interpretedParams.energy,
       originalPrompt: interpretedParams,
       interpretedParams: interpretedParams
     };

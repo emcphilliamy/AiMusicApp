@@ -8,7 +8,7 @@ const http = require('http');
 
 class NSynthDownloader {
   constructor() {
-    this.baseDataDir = path.join(__dirname, 'nsynth-data');
+    this.baseDataDir = path.join(__dirname, '../nsynth-data');
     this.instrumentFolders = {
       'guitar': path.join(this.baseDataDir, 'guitarNsynth'),
       'keyboard': path.join(this.baseDataDir, 'keyboardNsynth'),

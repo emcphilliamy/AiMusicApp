@@ -4,7 +4,7 @@
  */
 
 const { BeatGenerator } = require('./beatGenerator');
-const { PromptInterpreter } = require('./modules/promptInterpreter');
+const { PromptInterpreter } = require('../modules/promptInterpreter');
 const fs = require('fs');
 const path = require('path');
 

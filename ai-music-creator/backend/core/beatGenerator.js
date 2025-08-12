@@ -16,6 +16,7 @@ const crypto = require('crypto');
 // Import modular components
 const { TimingEngine } = require('../modules/timingEngine');
 const { PatternGenerator } = require('../modules/patternGenerator');
+const { ComplexBeatGenerator } = require('../modules/complexBeatGenerator');
 const { MelodicPatternGenerator } = require('../modules/melodicPatternGenerator');
 const { InstrumentSelector } = require('../modules/instrumentSelector');
 const { WavExporter } = require('../modules/wavExporter');
@@ -29,6 +30,7 @@ class BeatGenerator {
   constructor() {
     this.timingEngine = new TimingEngine();
     this.patternGenerator = new PatternGenerator();
+    this.complexBeatGenerator = new ComplexBeatGenerator();
     this.melodicPatternGenerator = new MelodicPatternGenerator();
     this.instrumentSelector = new InstrumentSelector();
     this.wavExporter = new WavExporter();
@@ -41,7 +43,8 @@ class BeatGenerator {
       keyword: 'default',
       instrument: 'auto',
       outputPath: './generated',
-      seed: null
+      seed: null,
+      complexity: 'auto' // New: auto, simple, moderate, complex, advanced
     };
   }
 
@@ -54,6 +57,7 @@ class BeatGenerator {
    * @param {number} [options.bars=1] - Pattern length in bars (1, 2, or 4)
    * @param {string} [options.keyword='default'] - Style keyword (jazz, funk, house, etc.)
    * @param {string} [options.instrument='auto'] - Instrument selection
+   * @param {string} [options.complexity='auto'] - Beat complexity: auto, simple, moderate, complex, advanced
    * @param {string} [options.outputPath='./generated'] - Output directory
    * @param {string} [options.seed] - Random seed for reproducibility
    * @returns {Promise<string>} Path to generated WAV file
@@ -95,7 +99,8 @@ class BeatGenerator {
           bpm: config.bpm,
           bars: config.bars,
           key: 'C', // Default to C major for now
-          seed: config.seed
+          seed: config.seed,
+          playMode: config.playMode || 'auto'
         });
         
         // Convert melodic pattern to compatible format
@@ -119,17 +124,63 @@ class BeatGenerator {
         console.log(`🎵 Progression: ${melodicResult.metadata.progression.join(' - ')}`);
         
       } else {
-        // Generate traditional drum pattern
+        // Generate drum pattern with complexity control
         console.log(`🥁 Generating drum pattern...`);
         
-        pattern = this.patternGenerator.generate({
-          keyword: config.keyword,
-          timingConfig: timingConfig,
-          seed: config.seed
-        });
+        // Determine complexity level
+        const complexity = config.complexity === 'auto' ? 
+          this.complexBeatGenerator.recommendComplexity(config.keyword, config.bars) : 
+          config.complexity;
+          
+        console.log(`🎯 Beat complexity: ${complexity}`);
         
-        console.log(`🥁 Pattern generated: ${pattern.events.length} events`);
-        this.printPatternGrid(pattern, timingConfig);
+        // Choose between simple and complex beat generation
+        if (complexity === 'simple' || (complexity === 'auto' && config.bars === 1)) {
+          // Use simple pattern generator (backward compatible)
+          pattern = this.patternGenerator.generate({
+            keyword: config.keyword,
+            timingConfig: timingConfig,
+            seed: config.seed
+          });
+          
+          console.log(`🥁 Simple pattern generated: ${pattern.events.length} events`);
+          this.printPatternGrid(pattern, timingConfig);
+          
+        } else {
+          // Use complex beat generator with layered architecture
+          const complexPattern = this.complexBeatGenerator.generateComplexBeat({
+            genre: config.keyword,
+            complexity: complexity,
+            timingConfig: timingConfig,
+            seed: config.seed
+          });
+          
+          // Convert complex pattern to compatible format
+          pattern = {
+            events: complexPattern.events.map(event => ({
+              position: event.position,
+              velocity: event.velocity,
+              note: event.note,
+              ghost: event.ghost || false,
+              layer: event.layer,
+              technique: event.technique,
+              humanized: event.humanized,
+              swung: event.swung
+            })),
+            style: complexPattern.genre,
+            complexity: complexity,
+            metadata: {
+              ...complexPattern.metadata,
+              layersUsed: complexPattern.metadata.layersUsed,
+              totalComplexity: complexPattern.metadata.totalComplexity
+            }
+          };
+          
+          console.log(`🎭 Complex pattern generated: ${pattern.events.length} events`);
+          console.log(`🔧 Layers used: ${pattern.metadata.layersUsed.join(', ')}`);
+          console.log(`📊 Complexity score: ${pattern.metadata.totalComplexity}`);
+          this.printPatternGrid(pattern, timingConfig);
+        }
       }
       
       // Step 3: Select appropriate instrument samples
@@ -142,8 +193,13 @@ class BeatGenerator {
       console.log(`🎹 Instrument selected: ${instrumentData.type} (${instrumentData.samples.length} samples)`);
       
       // Step 4: Create timing-accurate WAV file
-      // Add suffix based on pattern type: DB (Drum-Based) or MB (Melodic-Based)
-      const suffix = config.instrument === 'auto' ? '-DB' : '-MB';
+      // Add suffix based on pattern type: DB (Drum-Based), MB (Melodic-Based), or CB (Complex Beat)
+      let suffix = '-DB'; // Default drum-based
+      if (config.instrument !== 'auto') {
+        suffix = '-MB'; // Melodic-based
+      } else if (pattern.complexity && pattern.complexity !== 'simple') {
+        suffix = '-CB'; // Complex beat
+      }
       const outputFilename = `${config.songName}${suffix}.wav`;
       const outputPath = path.join(config.outputPath, outputFilename);
       
@@ -151,7 +207,7 @@ class BeatGenerator {
       const generationMetadata = {
         style: config.keyword,
         seed: config.seed || 'Random',
-        algorithm: 'Modular Pattern Generator',
+        algorithm: pattern.complexity ? 'Complex Multi-Layer Beat Generator' : 'Modular Pattern Generator',
         testType: this.getTestType(config.songName),
         originalPrompt: config.originalPrompt || null,
         interpretedParams: config.interpretedParams || null,
@@ -161,12 +217,19 @@ class BeatGenerator {
           timeSignature: config.timeSignature,
           bars: config.bars,
           instrument: config.instrument,
+          complexity: config.complexity,
           outputPath: config.outputPath
         },
         patternInfo: {
           totalEvents: pattern.events.length,
           patternComplexity: this.calculatePatternComplexity(pattern),
-          dominantNotes: this.getDominantNotes(pattern)
+          dominantNotes: this.getDominantNotes(pattern),
+          // Add complex beat metadata if available
+          ...(pattern.metadata && {
+            layersUsed: pattern.metadata.layersUsed,
+            totalComplexityScore: pattern.metadata.totalComplexity,
+            genreRules: pattern.metadata.genreRules
+          })
         },
         generatedAt: new Date().toISOString()
       };
@@ -210,9 +273,16 @@ class BeatGenerator {
       throw new Error('Time signature must be 4/4 or 3/4');
     }
     
-    // Validate bars
-    if (![1, 2, 4].includes(config.bars)) {
-      throw new Error('Bars must be 1, 2, or 4');
+    // Validate bars (allow more bars for complex beats)
+    // For auto complexity, determine based on recommended complexity
+    let effectiveComplexity = config.complexity;
+    if (config.complexity === 'auto') {
+      effectiveComplexity = this.complexBeatGenerator.recommendComplexity(config.keyword, config.bars);
+    }
+    
+    const maxBars = effectiveComplexity === 'advanced' ? 8 : (effectiveComplexity === 'complex' ? 4 : 4);
+    if (config.bars < 1 || config.bars > maxBars || ![1, 2, 4, 8].includes(config.bars)) {
+      throw new Error(`Bars must be 1, 2, 4, or ${maxBars === 8 ? '8 (for advanced complexity)' : '4'}`);
     }
     
     // Ensure output directory exists

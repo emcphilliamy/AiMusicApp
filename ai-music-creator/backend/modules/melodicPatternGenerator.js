@@ -231,7 +231,7 @@ class MelodicPatternGenerator {
    * @param {number} config.seed - Random seed for reproducibility
    * @returns {Object} Generated melodic pattern
    */
-  generateMelodicPattern({ instrument, genre, bpm, bars, key = 'C', seed }) {
+  generateMelodicPattern({ instrument, genre, bpm, bars, key = 'C', seed, playMode = 'auto' }) {
     this.setSeed(seed);
     
     const instrumentSpec = this.INSTRUMENT_SPECS[instrument];
@@ -247,12 +247,30 @@ class MelodicPatternGenerator {
     // Generate chord voicings based on progression
     const chords = this.generateChordVoicings(progression, scale, instrumentSpec);
     
-    // Create melodic line
-    const melody = this.generateMelodyLine(chords, scale, instrumentSpec, genre, bars);
+    // Determine play mode if auto
+    const selectedPlayMode = playMode === 'auto' ? this.selectPlayMode(instrument, genre) : playMode;
     
-    // Apply rhythmic pattern
-    const rhythmPattern = this.selectRhythmPattern(genre);
-    const timedEvents = this.applyRhythm(melody, rhythmPattern, bpm, bars);
+    // Generate pattern based on play mode
+    let timedEvents;
+    switch (selectedPlayMode) {
+      case 'chord':
+        timedEvents = this.generateChordPattern(chords, genre, bpm, bars);
+        break;
+      case 'strum':
+        timedEvents = this.generateStrumPattern(chords, genre, bpm, bars);
+        break;
+      case 'rhythm':
+        timedEvents = this.generateRhythmicPattern(chords, scale, genre, bpm, bars, instrument);
+        break;
+      case 'mixed':
+        timedEvents = this.generateMixedPattern(chords, scale, genre, bpm, bars, instrument);
+        break;
+      default:
+        // Fallback to original melody generation
+        const melody = this.generateMelodyLine(chords, scale, instrumentSpec, genre, bars);
+        const rhythmPattern = this.selectRhythmPattern(genre);
+        timedEvents = this.applyRhythm(melody, rhythmPattern, bpm, bars);
+    }
     
     return {
       events: timedEvents,
@@ -261,6 +279,7 @@ class MelodicPatternGenerator {
         genre,
         key,
         mode,
+        playMode: selectedPlayMode,
         progression: progression.map(degree => this.degreeToRoman(degree)),
         scale: scale.map(note => this.noteToString(note)),
         chords: chords.map(chord => chord.map(note => this.noteToString(note))),
@@ -492,10 +511,768 @@ class MelodicPatternGenerator {
   }
 
   /**
+   * Select appropriate play mode for instrument and genre
+   */
+  selectPlayMode(instrument, genre) {
+    // Define play mode preferences by instrument and genre
+    const playModeMatrix = {
+      'guitar': {
+        'funk': 'rhythm',
+        'jazz': 'mixed',
+        'pop': 'strum',
+        'house': 'rhythm',
+        'lo-fi': 'strum',
+        'default': 'mixed'
+      },
+      'keyboard': {
+        'funk': 'chord',
+        'jazz': 'mixed',
+        'pop': 'chord',
+        'house': 'chord',
+        'lo-fi': 'chord',
+        'default': 'chord'
+      },
+      'bass': {
+        'funk': 'rhythm',
+        'jazz': 'rhythm',
+        'pop': 'rhythm',
+        'house': 'rhythm',
+        'lo-fi': 'rhythm',
+        'default': 'rhythm'
+      },
+      'default': {
+        'default': 'mixed'
+      }
+    };
+
+    const instrumentModes = playModeMatrix[instrument] || playModeMatrix['default'];
+    return instrumentModes[genre] || instrumentModes['default'] || 'mixed';
+  }
+
+  /**
+   * Generate chord pattern - simultaneous notes
+   */
+  generateChordPattern(chords, genre, bpm, bars) {
+    const events = [];
+    const rhythmPattern = this.selectRhythmPattern(genre);
+    const beatsPerBar = 4;
+    const stepsPerBeat = 4; // 16th note resolution
+
+    for (let bar = 0; bar < bars; bar++) {
+      const chordIndex = bar % chords.length;
+      const chord = chords[chordIndex];
+
+      for (let stepIndex of rhythmPattern) {
+        if (stepIndex >= 16) continue; // Stay within one bar
+        
+        const timePosition = (bar * beatsPerBar) + (stepIndex / stepsPerBeat);
+        const velocity = this.generateVelocity();
+
+        // Create simultaneous chord notes
+        for (let note of chord) {
+          events.push({
+            note: note,
+            time: timePosition,
+            velocity: velocity,
+            duration: 0.5 // Chord duration
+          });
+        }
+      }
+    }
+
+    return events;
+  }
+
+  /**
+   * Generate strum pattern - sequential chord notes
+   */
+  generateStrumPattern(chords, genre, bpm, bars) {
+    const events = [];
+    const rhythmPattern = this.selectRhythmPattern(genre);
+    const beatsPerBar = 4;
+    const stepsPerBeat = 4;
+    const strumDelay = 0.02; // 20ms between strum notes
+
+    for (let bar = 0; bar < bars; bar++) {
+      const chordIndex = bar % chords.length;
+      const chord = chords[chordIndex];
+
+      for (let stepIndex of rhythmPattern) {
+        if (stepIndex >= 16) continue;
+        
+        const baseTime = (bar * beatsPerBar) + (stepIndex / stepsPerBeat);
+        const velocity = this.generateVelocity();
+
+        // Create sequential strum notes
+        chord.forEach((note, noteIndex) => {
+          events.push({
+            note: note,
+            time: baseTime + (noteIndex * strumDelay),
+            velocity: velocity * (0.8 + noteIndex * 0.1), // Slight velocity variation
+            duration: 0.3
+          });
+        });
+      }
+    }
+
+    return events;
+  }
+
+  /**
+   * Generate rhythmic pattern - instrument and genre specific patterns
+   */
+  generateRhythmicPattern(chords, scale, genre, bpm, bars, instrument = 'guitar') {
+    const events = [];
+    const beatsPerBar = 4;
+    
+    // Create dynamic arc for multi-bar patterns
+    const dynamicStructure = this.createDynamicArc(bars);
+    
+    // Get instrument-specific pattern generator
+    const patternGenerator = this.getInstrumentPatternGenerator(instrument, genre, bpm);
+    
+    for (let bar = 0; bar < bars; bar++) {
+      const chordIndex = bar % chords.length;
+      const chord = chords[chordIndex];
+      const barInfo = dynamicStructure[bar];
+      
+      const barEvents = patternGenerator.generateDynamicBar(chord, bar, beatsPerBar, barInfo);
+      
+      // Offset events by bar position
+      barEvents.forEach(event => {
+        event.time += bar * beatsPerBar;
+        events.push(event);
+      });
+    }
+
+    return this.addCrossBarsExpression(events, bars, genre, instrument);
+  }
+  
+  /**
+   * Create dynamic arc across multiple bars
+   */
+  createDynamicArc(bars) {
+    const structure = [];
+    
+    if (bars <= 2) {
+      // Short: steady to slight build
+      structure.push({ type: 'steady', intensity: 0.7, complexity: 0.8, fills: false });
+      if (bars > 1) structure.push({ type: 'build', intensity: 0.85, complexity: 0.9, fills: true });
+    } else if (bars <= 4) {
+      // Medium: intro -> build -> climax -> settle
+      structure.push({ type: 'intro', intensity: 0.6, complexity: 0.7, fills: false });
+      structure.push({ type: 'build', intensity: 0.8, complexity: 0.9, fills: true });
+      if (bars > 2) structure.push({ type: 'climax', intensity: 1.0, complexity: 1.0, fills: true });
+      if (bars > 3) structure.push({ type: 'outro', intensity: 0.7, complexity: 0.8, fills: false });
+    } else {
+      // Long: full dynamic journey
+      const peakBar = Math.floor(bars * 0.75); // Peak near end
+      
+      for (let bar = 0; bar < bars; bar++) {
+        if (bar < peakBar - 1) {
+          // Build phase
+          const buildProgress = bar / (peakBar - 1);
+          structure.push({ 
+            type: 'build', 
+            intensity: 0.6 + (buildProgress * 0.3), 
+            complexity: 0.7 + (buildProgress * 0.2),
+            fills: bar > 0 && bar % 2 === 1 // Fills on odd bars
+          });
+        } else if (bar === peakBar) {
+          // Climax
+          structure.push({ type: 'climax', intensity: 1.0, complexity: 1.0, fills: true });
+        } else {
+          // Resolution/outro
+          const fallProgress = (bar - peakBar) / (bars - peakBar - 1);
+          structure.push({ 
+            type: 'fall', 
+            intensity: 0.95 - (fallProgress * 0.25), 
+            complexity: 0.9 - (fallProgress * 0.1),
+            fills: false
+          });
+        }
+      }
+    }
+    
+    return structure;
+  }
+  
+  /**
+   * Add cross-bar musical expression
+   */
+  addCrossBarsExpression(events, bars, genre, instrument) {
+    if (bars <= 1) return events;
+    
+    // Add crescendos and decrescendos
+    return events.map((event, idx) => {
+      const barPosition = Math.floor(event.time / 4);
+      const positionInBar = event.time % 4;
+      const totalBars = bars;
+      
+      let velocityMultiplier = 1.0;
+      
+      // Overall dynamic arc
+      if (genre === 'funk') {
+        // Funk: builds intensity throughout
+        const overallProgress = barPosition / totalBars;
+        velocityMultiplier *= (0.8 + overallProgress * 0.4);
+      } else if (genre === 'beach') {
+        // Beach: gentle ebb and flow
+        const wave = Math.sin((barPosition / totalBars) * Math.PI);
+        velocityMultiplier *= (0.9 + wave * 0.2);
+      }
+      
+      // Add subtle humanization
+      const humanVariation = (Math.random() - 0.5) * 0.05; // ±2.5%
+      
+      return {
+        ...event,
+        velocity: Math.max(0.1, Math.min(1.0, event.velocity * velocityMultiplier + humanVariation)),
+        // Add slight timing humanization
+        time: event.time + (Math.random() - 0.5) * 0.01 // ±5ms
+      };
+    });
+  }
+
+  /**
+   * Get instrument and genre specific pattern generator
+   */
+  getInstrumentPatternGenerator(instrument, genre, bpm) {
+    // Genre-specific characteristics
+    const genrePatterns = {
+      'funk': {
+        emphasis: 'syncopation',
+        subdivision: 16, // 16th notes
+        swing: 0,
+        accentPattern: [0, 2, 4, 6, 8, 10, 12, 14], // Tight 16th pattern
+        velocityVariation: 0.4
+      },
+      'beach': {
+        emphasis: 'melody',
+        subdivision: 8, // 8th notes
+        swing: 0.1, // Slight swing
+        accentPattern: [0, 2, 4, 6, 8, 10, 12, 14], // Flowing 8th pattern
+        velocityVariation: 0.2
+      },
+      'jazz': {
+        emphasis: 'swing',
+        subdivision: 8,
+        swing: 0.3, // Strong swing
+        accentPattern: [0, 3, 6, 9, 12, 15], // Swing 8ths
+        velocityVariation: 0.5
+      },
+      'pop': {
+        emphasis: 'steady',
+        subdivision: 8,
+        swing: 0,
+        accentPattern: [0, 4, 8, 12], // Quarter note emphasis
+        velocityVariation: 0.2
+      }
+    };
+
+    // Instrument-specific characteristics
+    const instrumentPatterns = {
+      'guitar': {
+        preferredNotes: 'chord', // Prefers full chords
+        playStyle: 'strummed',
+        noteDuration: 0.3,
+        maxSimultaneous: 6
+      },
+      'bass': {
+        preferredNotes: 'root', // Prefers root notes
+        playStyle: 'fingered',
+        noteDuration: 0.4,
+        maxSimultaneous: 1
+      },
+      'keyboard': {
+        preferredNotes: 'chord', // Can handle complex chords
+        playStyle: 'pressed',
+        noteDuration: 0.5,
+        maxSimultaneous: 10
+      }
+    };
+
+    const genreSpec = genrePatterns[genre] || genrePatterns['pop'];
+    const instrumentSpec = instrumentPatterns[instrument] || instrumentPatterns['guitar'];
+
+    return {
+      genreSpec,
+      instrumentSpec,
+      
+      generateBar(chord, barIndex, beatsPerBar) {
+        const barInfo = { type: 'steady', intensity: 0.8, complexity: 0.8, fills: false };
+        return this.generateDynamicBar(chord, barIndex, beatsPerBar, barInfo);
+      },
+      
+      generateDynamicBar(chord, barIndex, beatsPerBar, barInfo) {
+        const events = [];
+        const [root, third, fifth] = chord.length >= 3 ? chord : [chord[0], chord[0], chord[0]];
+        
+        // Create base pattern
+        const basePattern = this.createPatternForInstrumentGenre(chord, root, third, fifth, genreSpec, instrumentSpec, beatsPerBar);
+        
+        // Add fills and complexity based on barInfo
+        const enhancedPattern = this.addBarExpression(basePattern, barInfo, chord, instrument, genre);
+        
+        return enhancedPattern;
+      },
+      
+      addBarExpression(pattern, barInfo, chord, instrument, genre) {
+        const [root, third, fifth] = chord.length >= 3 ? chord : [chord[0], chord[0], chord[0]];
+        
+        // Scale pattern by intensity
+        let enhancedPattern = pattern.map(event => ({
+          ...event,
+          velocity: event.velocity * barInfo.intensity
+        }));
+        
+        // Add fills if requested
+        if (barInfo.fills) {
+          if (instrument === 'guitar') {
+            // Add guitar fills: quick hammer-ons, pull-offs
+            enhancedPattern.push({
+              note: root + 2, // 2nd fret higher
+              time: 0.875,
+              velocity: barInfo.intensity * 0.4,
+              duration: 0.1,
+              technique: 'hammer-on'
+            });
+            
+            enhancedPattern.push({
+              note: fifth + 2,
+              time: 2.875, 
+              velocity: barInfo.intensity * 0.5,
+              duration: 0.1,
+              technique: 'pull-off'  
+            });
+          } else if (instrument === 'bass') {
+            // Add bass fills: slides, grace notes
+            enhancedPattern.push({
+              note: root - 1, // Chromatic approach
+              time: 0.9,
+              velocity: barInfo.intensity * 0.3,
+              duration: 0.08,
+              technique: 'slide'
+            });
+            
+            enhancedPattern.push({
+              note: fifth + 1, // Passing tone
+              time: 2.7,
+              velocity: barInfo.intensity * 0.4, 
+              duration: 0.2,
+              technique: 'slide'
+            });
+          }
+        }
+        
+        // Add complexity layers
+        if (barInfo.complexity > 0.8) {
+          if (instrument === 'guitar') {
+            // Add percussive mutes between chords
+            [1.25, 1.75, 3.25].forEach(time => {
+              enhancedPattern.push({
+                note: root,
+                time: time,
+                velocity: 0.1,
+                duration: 0.05,
+                muted: true
+              });
+            });
+          }
+        }
+        
+        return enhancedPattern;
+      },
+      
+      createPatternForInstrumentGenre(chord, root, third, fifth, genreSpec, instrumentSpec, beatsPerBar = 4) {
+        const events = [];
+        
+        if (genre === 'funk' && instrument === 'bass') {
+          // Funk bass: Sustained bass lines with continuous carrying behavior (arco style)
+          const pattern = [
+            // Long sustained root - legato bowing technique
+            { note: root, time: 0.0, velocity: 0.7, duration: 1.2, technique: 'legato' },
+            
+            // Smooth transition to fifth - portato connection
+            { note: fifth, time: 1.0, velocity: 0.6, duration: 0.8, technique: 'portato' },
+            
+            // Walking to third with sustained connection
+            { note: third, time: 1.75, velocity: 0.5, duration: 0.5, technique: 'legato' },
+            
+            // Continuous bass note into beat 3 - tenuto sustain
+            { note: root, time: 2.0, velocity: 0.8, duration: 1.5, technique: 'tenuto' },
+            
+            // Smooth chromatic approach - glissando effect
+            { note: root - 1, time: 3.2, velocity: 0.4, duration: 0.3, technique: 'glissando' },
+            
+            // Resolution back to root - flowing connection
+            { note: root, time: 3.5, velocity: 0.7, duration: 0.5, technique: 'legato' }
+          ];
+          
+          // Add continuous expression markings for sustained bass behavior
+          return pattern.map((event, idx) => ({
+            ...event,
+            // Longer durations for sustained bass character
+            duration: event.duration * 1.3,
+            // Smooth velocity transitions (no sharp attacks)
+            velocity: event.velocity * (0.9 + Math.sin(idx * 0.5) * 0.2), // Gentle waves
+            // Add bow direction changes for authentic bass playing
+            bowDirection: idx % 2 === 0 ? 'down' : 'up',
+            // Continuous sound with overlapping notes
+            overlap: true
+          }));
+        }
+        
+        if (genre === 'funk' && instrument === 'guitar') {
+          // Funk guitar: Authentic groove with syncopated chord stabs and chicken scratch
+          const pattern = [];
+          
+          // THE GROOVE - Based on classic funk patterns
+          // Beat 1: Strong downbeat chord stab
+          chord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 0.0 + (idx * 0.005), // Tight strum
+              velocity: 0.95,
+              duration: 0.06, // Very staccato
+              technique: 'downstroke'
+            });
+          });
+          
+          // "e" - 16th note muted scratch (chicken scratch)
+          pattern.push({
+            note: root,
+            time: 0.25,
+            velocity: 0.15,
+            duration: 0.02,
+            muted: true,
+            technique: 'scratch'
+          });
+          
+          // "&" - Syncopated upstroke chord
+          chord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 0.5 + (idx * 0.003),
+              velocity: 0.6,
+              duration: 0.05,
+              technique: 'upstroke'
+            });
+          });
+          
+          // Beat 2: Skip (creates groove space)
+          // "a" - Quick muted scratch
+          pattern.push({
+            note: root,
+            time: 1.25,
+            velocity: 0.12,
+            duration: 0.02,
+            muted: true,
+            technique: 'scratch'
+          });
+          
+          // Beat 3: Syncopated stab on the "e"
+          chord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 2.25 + (idx * 0.005),
+              velocity: 0.8,
+              duration: 0.06,
+              technique: 'downstroke'
+            });
+          });
+          
+          // More chicken scratch
+          pattern.push({
+            note: root,
+            time: 2.75,
+            velocity: 0.18,
+            duration: 0.02,
+            muted: true,
+            technique: 'scratch'
+          });
+          
+          // Beat 4: "& a" - Double hit for groove
+          chord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 3.5 + (idx * 0.003),
+              velocity: 0.5,
+              duration: 0.04,
+              technique: 'upstroke'
+            });
+          });
+          
+          chord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 3.75 + (idx * 0.003),
+              velocity: 0.7,
+              duration: 0.05,
+              technique: 'downstroke'
+            });
+          });
+          
+          return pattern;
+        }
+        
+        if (genre === 'beach' && instrument === 'guitar') {
+          // Beach guitar: Fingerpicked arpeggios with gentle strums (Jack Johnson style)
+          const pattern = [];
+          
+          // Fingerpicked arpeggio - beat 1
+          pattern.push({ note: root, time: 0.0, velocity: 0.6, duration: 0.5 });
+          pattern.push({ note: third, time: 0.3, velocity: 0.5, duration: 0.4 });
+          pattern.push({ note: fifth, time: 0.6, velocity: 0.55, duration: 0.4 });
+          pattern.push({ note: root + 12, time: 0.9, velocity: 0.45, duration: 0.3 }); // Octave
+          
+          // Gentle downstrum - beat 2
+          chord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 1.2 + (idx * 0.025), // Natural strum timing
+              velocity: 0.4 + (idx * 0.05), // Slight accent on higher strings
+              duration: 0.7
+            });
+          });
+          
+          // Fingerpicked bass walk - beat 3
+          pattern.push({ note: fifth, time: 2.0, velocity: 0.6, duration: 0.4 });
+          pattern.push({ note: third, time: 2.4, velocity: 0.5, duration: 0.3 });
+          
+          // Upstrum variation - beat 4
+          const reversedChord = [...chord].reverse();
+          reversedChord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 3.0 + (idx * 0.02), // Faster upstrum
+              velocity: 0.35 + (idx * 0.03),
+              duration: 0.5
+            });
+          });
+          
+          // Pickup notes
+          pattern.push({ note: root, time: 3.7, velocity: 0.4, duration: 0.2 });
+          pattern.push({ note: fifth, time: 3.85, velocity: 0.35, duration: 0.15 });
+          
+          // Add subtle swing feel
+          return pattern.map(event => ({
+            ...event,
+            time: event.time + (Math.sin(event.time * 2) * 0.02) // Gentle swing
+          }));
+        }
+        
+        if (genre === 'beach' && instrument === 'bass') {
+          // Beach bass: Gentle sustained lines like cello, continuous and flowing
+          const pattern = [
+            // Long sustained root with gentle bow changes - peaceful foundation
+            { note: root, time: 0.0, velocity: 0.5, duration: 2.0, technique: 'legato' },
+            
+            // Smooth glide to fifth - like ocean waves
+            { note: fifth, time: 1.8, velocity: 0.45, duration: 1.5, technique: 'portato' },
+            
+            // Gentle return with sustained connection
+            { note: third, time: 3.0, velocity: 0.4, duration: 1.0, technique: 'tenuto' }
+          ];
+          
+          // Add gentle wave-like expression for beach feel
+          return pattern.map((event, idx) => ({
+            ...event,
+            // Very long durations for sustained bass character
+            duration: event.duration * 1.5,
+            // Gentle wave-like velocity changes
+            velocity: event.velocity * (0.8 + Math.sin(event.time * 0.5) * 0.3),
+            // Smooth transitions between notes
+            overlap: true,
+            bowDirection: 'smooth',
+            // Add gentle timing sway like gentle waves
+            time: event.time + Math.sin(event.time) * 0.05
+          }));
+        }
+        
+        // ADD ALL OTHER GENRES
+        if (genre === 'jazz' && instrument === 'bass') {
+          // Jazz bass: Walking lines with sophisticated harmony
+          const pattern = [
+            { note: root, time: 0.0, velocity: 0.7, duration: 1.0, technique: 'arco' },
+            { note: third, time: 0.8, velocity: 0.6, duration: 0.8, technique: 'legato' },
+            { note: fifth, time: 1.5, velocity: 0.65, duration: 0.9, technique: 'portato' },
+            { note: root + 7, time: 2.2, velocity: 0.6, duration: 1.2, technique: 'tenuto' }, // 7th
+            { note: fifth, time: 3.0, velocity: 0.55, duration: 1.0, technique: 'legato' }
+          ];
+          
+          return pattern.map(event => ({
+            ...event,
+            duration: event.duration * 1.2,
+            velocity: event.velocity * (0.9 + Math.random() * 0.2),
+            overlap: true
+          }));
+        }
+        
+        if (genre === 'jazz' && instrument === 'guitar') {
+          // Jazz guitar: Complex chord voicings with sophisticated fingerpicking
+          const pattern = [];
+          
+          // Jazz chord voicing - 7th, 9th, 11th
+          const jazzChord = [root, third, fifth, root + 7, root + 9]; // Add jazz extensions
+          
+          // Sophisticated fingerpicking pattern
+          jazzChord.forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: idx * 0.15, // Arpeggiated
+              velocity: 0.6 + (idx * 0.05),
+              duration: 0.8,
+              technique: 'fingerpicked'
+            });
+          });
+          
+          // Syncopated chord stabs
+          jazzChord.slice(0, 4).forEach((note, idx) => {
+            pattern.push({
+              note: note,
+              time: 1.5 + (idx * 0.01),
+              velocity: 0.7,
+              duration: 0.6,
+              technique: 'chord-stab'
+            });
+          });
+          
+          return pattern;
+        }
+        
+        if (genre === 'blues' && instrument === 'guitar') {
+          // Blues guitar: Bending, sliding, expressive techniques
+          const pattern = [];
+          
+          // Blues bend on third
+          pattern.push({
+            note: third - 1, // Flat third
+            time: 0.0,
+            velocity: 0.8,
+            duration: 0.5,
+            technique: 'bend'
+          });
+          
+          // Slide to fifth
+          pattern.push({
+            note: fifth,
+            time: 0.8,
+            velocity: 0.7,
+            duration: 0.6,
+            technique: 'slide'
+          });
+          
+          // Root with vibrato
+          pattern.push({
+            note: root,
+            time: 2.0,
+            velocity: 0.75,
+            duration: 1.5,
+            technique: 'vibrato'
+          });
+          
+          return pattern;
+        }
+        
+        if (genre === 'house' && instrument === 'bass') {
+          // House bass: Punchy, electronic-style sustained notes
+          const pattern = [
+            { note: root, time: 0.0, velocity: 0.9, duration: 0.8, technique: 'sustained' },
+            { note: root, time: 1.0, velocity: 0.8, duration: 0.8, technique: 'sustained' },
+            { note: fifth, time: 2.0, velocity: 0.85, duration: 0.8, technique: 'sustained' },
+            { note: root, time: 3.0, velocity: 0.9, duration: 0.8, technique: 'sustained' }
+          ];
+          
+          return pattern.map(event => ({
+            ...event,
+            duration: event.duration * 1.1, // Sustained character
+            overlap: false // Clean separation for house
+          }));
+        }
+        
+        // Default pattern for other combinations
+        const stepsPerBeat = genreSpec.subdivision / 4;
+        const totalSteps = beatsPerBar * stepsPerBeat;
+        
+        for (let step = 0; step < totalSteps; step++) {
+          if (genreSpec.accentPattern.includes(step)) {
+            const timePosition = step / stepsPerBeat;
+            const velocity = 0.6 + (Math.random() * genreSpec.velocityVariation);
+            
+            if (instrumentSpec.preferredNotes === 'chord') {
+              // Play chord
+              chord.forEach((note, idx) => {
+                events.push({
+                  note: note,
+                  time: timePosition + (idx * 0.02),
+                  velocity: velocity,
+                  duration: instrumentSpec.noteDuration
+                });
+              });
+            } else {
+              // Play single note (usually root)
+              events.push({
+                note: root,
+                time: timePosition,
+                velocity: velocity,
+                duration: instrumentSpec.noteDuration
+              });
+            }
+          }
+        }
+        
+        return events;
+      }
+    };
+  }
+
+  /**
+   * Generate mixed pattern - combination of different techniques
+   */
+  generateMixedPattern(chords, scale, genre, bpm, bars, instrument = 'guitar') {
+    const events = [];
+    
+    // Mix different patterns across bars
+    for (let bar = 0; bar < bars; bar++) {
+      const patternChoice = bar % 3; // Cycle through pattern types
+      
+      switch (patternChoice) {
+        case 0:
+          // Chord pattern for this bar
+          const chordEvents = this.generateChordPattern([chords[bar % chords.length]], genre, bpm, 1);
+          chordEvents.forEach(event => {
+            event.time += bar * 4; // Offset by bar
+            events.push(event);
+          });
+          break;
+        case 1:
+          // Strum pattern for this bar  
+          const strumEvents = this.generateStrumPattern([chords[bar % chords.length]], genre, bpm, 1);
+          strumEvents.forEach(event => {
+            event.time += bar * 4;
+            events.push(event);
+          });
+          break;
+        case 2:
+          // Rhythmic pattern for this bar
+          const rhythmEvents = this.generateRhythmicPattern([chords[bar % chords.length]], scale, genre, bpm, 1, instrument);
+          rhythmEvents.forEach(event => {
+            event.time += bar * 4;
+            events.push(event);
+          });
+          break;
+      }
+    }
+    
+    return events;
+  }
+
+  /**
    * Get suggested instruments for melodic patterns
    */
   static getMelodicInstruments() {
-    return ['guitar', 'keyboard', 'organ', 'flute', 'string', 'brass', 'reed', 'vocal', 'synth_lead'];
+    return ['guitar', 'keyboard', 'organ', 'flute', 'string', 'brass', 'reed', 'vocal', 'synth_lead', 'bass'];
   }
 
   /**
