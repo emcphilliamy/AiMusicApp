@@ -1,0 +1,79 @@
+{
+  "source": "Freesound.org",
+  "downloadedAt": "2025-08-12T00:05:02.424Z",
+  "instruments": {
+    "drums": {
+      "count": 14,
+      "files": [
+        "drums_000_Not_great_snare.mp3",
+        "drums_001_27_Feb_All_Rounder.mp3",
+        "drums_002_Kick_Punchy4_10_1_14.mp3",
+        "drums_003_hybrid_snare_5.mp3",
+        "drums_004_mapex_snare_14_x7__wav.mp3",
+        "drums_005_snare1644_wav.mp3",
+        "drums_006_drumhit_snare12.mp3",
+        "drums_007_Snare_158_wav.mp3",
+        "drums_008_FloorTom1Drum_wav.mp3",
+        "drums_009_maypex-TOM_floor_wav.mp3",
+        "drums_010_YamahaAbsoluteMapleCustomKick2.mp3",
+        "drums_011_Rick_DRUM_BD_hard_wav.mp3",
+        "drums_012_PEARL_14__SNARE.mp3",
+        "drums_013_Trash_Can_Hit_01_Rim.mp3"
+      ],
+      "format": "mp3"
+    },
+    "piano": {
+      "count": 14,
+      "files": [
+        "piano_000_Kalimba_C3.mp3",
+        "piano_001_piano_5_wav.mp3",
+        "piano_002_Piano_D_wav.mp3",
+        "piano_003_piano_normal_d4_wav.mp3",
+        "piano_004_Piano_E_wav.mp3",
+        "piano_005_e4_wav.mp3",
+        "piano_006_Piano_F__wav.mp3",
+        "piano_007_Piano_F_wav.mp3",
+        "piano_008_Piano_G__wav.mp3",
+        "piano_009_Piano_G_wav.mp3",
+        "piano_010_Piano_A_wav.mp3",
+        "piano_011_Piano_a4_sound.mp3",
+        "piano_012_Piano_B_wav.mp3",
+        "piano_013_b4_wav.mp3"
+      ],
+      "format": "mp3"
+    },
+    "claps": {
+      "count": 5,
+      "files": [
+        "claps_000_HandClap4_wav.mp3",
+        "claps_001_Claps___Snares_002.mp3",
+        "claps_002_HandClap03_wav.mp3",
+        "claps_003_single_clap_1_wav.mp3",
+        "claps_004_Clapping_wav.mp3"
+      ],
+      "format": "mp3"
+    },
+    "synth_lead": {
+      "count": 5,
+      "files": [
+        "synth_lead_000_VM2-69_wav.mp3",
+        "synth_lead_001_VM2-74_wav.mp3",
+        "synth_lead_002_VM2-97_wav.mp3",
+        "synth_lead_003_Kygo_Real_Attack_Lead_3_Nexus_.mp3",
+        "synth_lead_004_PPG_019_Brassy_G_5_wav.mp3"
+      ],
+      "format": "mp3"
+    },
+    "brass": {
+      "count": 5,
+      "files": [
+        "brass_000_trumpetF3_wav.mp3",
+        "brass_001_Trumpet_-_staccato_-_A_4__Sum_.mp3",
+        "brass_002_Alto_Sax_gb3_v127_wav.mp3",
+        "brass_003_Alto_Sax_c3_v115_wav.mp3",
+        "brass_004_Tenor_Trombone_-_staccato_-_E_.mp3"
+      ],
+      "format": "mp3"
+    }
+  }
+}

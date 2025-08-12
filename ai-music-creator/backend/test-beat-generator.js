@@ -137,9 +137,13 @@ class BeatGeneratorTester {
           songName: `TimingTest_${test.bpm}_${test.bars}`,
           bpm: test.bpm,
           bars: test.bars,
-          timeSignature: test.timeSignature,
           keyword: 'default'
         };
+        
+        // Only set timeSignature if it's defined in the test
+        if (test.timeSignature) {
+          options.timeSignature = test.timeSignature;
+        }
         
         const outputPath = await generateBeat(options);
         const actualDuration = await this.measureWavDuration(outputPath);

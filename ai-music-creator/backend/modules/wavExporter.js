@@ -20,10 +20,10 @@ class WavExporter {
     this.channels = 1; // Mono output for single instruments
     
     // Audio processing parameters
-    this.masterVolume = 0.8; // Leave headroom for mastering
-    this.velocityCurve = 2.0; // Exponential velocity response
-    this.fadeInSamples = 64; // Prevent clicks
-    this.fadeOutSamples = 64;
+    this.masterVolume = 0.75; // Slightly lower for cleaner sound
+    this.velocityCurve = 1.8; // Slightly less aggressive curve
+    this.fadeInSamples = 256; // Prevent clicks - longer fade (5.8ms)
+    this.fadeOutSamples = 256; // Prevent clicks - longer fade (5.8ms)
   }
 
   /**
@@ -177,10 +177,25 @@ class WavExporter {
       const normalizeIfNeeded = (sampleArray) => {
         if (!sampleArray || sampleArray.length === 0) return sampleArray;
         
-        // Convert to array if it's not already (some samples might be typed arrays)
-        const arrayToCheck = Array.isArray(sampleArray) ? sampleArray : Array.from(sampleArray);
-        const checkLength = Math.min(1000, arrayToCheck.length);
-        const maxValue = Math.max(...arrayToCheck.slice(0, checkLength));
+        // Check multiple points throughout the sample to detect max value efficiently
+        // Sample at beginning, middle, and end + some random points for better detection
+        const checkIndices = [];
+        const len = sampleArray.length;
+        
+        // Always check first 50, middle 50, and last 50 samples
+        for (let i = 0; i < Math.min(50, len); i++) checkIndices.push(i);
+        for (let i = Math.max(0, Math.floor(len/2) - 25); i < Math.min(len, Math.floor(len/2) + 25); i++) checkIndices.push(i);
+        for (let i = Math.max(0, len - 50); i < len; i++) checkIndices.push(i);
+        
+        // Add some random samples throughout for comprehensive checking
+        for (let i = 0; i < 50 && checkIndices.length < 200; i++) {
+          checkIndices.push(Math.floor(Math.random() * len));
+        }
+        
+        let maxValue = 0;
+        for (const idx of checkIndices) {
+          maxValue = Math.max(maxValue, Math.abs(sampleArray[idx]));
+        }
         
         // If samples appear to be in integer range (> 1), normalize them
         if (maxValue > 1.5) {
@@ -258,7 +273,11 @@ class WavExporter {
     
     // Apply exponential curve for more musical velocity response
     const normalizedVelocity = Math.max(0, Math.min(1, velocity));
-    const result = Math.pow(normalizedVelocity, 1 / this.velocityCurve);
+    const velocityGain = Math.pow(normalizedVelocity, 1 / this.velocityCurve);
+    
+    // Scale down to prevent excessive levels from loud NSynth samples
+    const baseGain = 0.6; // Reduce base sample level
+    const result = velocityGain * baseGain;
     
     return result;
   }
@@ -322,8 +341,8 @@ class WavExporter {
       }
     }
     
-    // Apply soft limiting if needed
-    if (peak > 1.0) {
+    // Apply soft limiting only if significantly over threshold
+    if (peak > 1.05) { // Only limit if really needed
       console.log(`🔧 Applying soft limiting (peak: ${peak.toFixed(3)})`);
       for (let i = 0; i < audioBuffer.length; i++) {
         audioBuffer[i] = this.softLimit(audioBuffer[i]);
@@ -349,15 +368,15 @@ class WavExporter {
    * @private
    */
   softLimit(sample) {
-    const threshold = 0.95;
+    const threshold = 0.98; // Higher threshold to reduce limiting
     const absValue = Math.abs(sample);
     
     if (absValue <= threshold) {
       return sample;
     }
     
-    // Soft knee compression
-    const ratio = 1 + (absValue - threshold) * 0.5;
+    // Gentler soft knee compression
+    const ratio = 1 + (absValue - threshold) * 0.3; // Reduced compression ratio
     return sample > 0 ? threshold + (sample - threshold) / ratio : 
                        -threshold + (sample + threshold) / ratio;
   }
@@ -588,8 +607,13 @@ class WavExporter {
         seed: generationMetadata.seed || 'Random',
         algorithm: generationMetadata.algorithm || 'Standard',
         parameters: generationMetadata.parameters || {},
-        testType: generationMetadata.testType || 'Manual'
+        testType: generationMetadata.testType || 'Manual',
+        originalPrompt: generationMetadata.originalPrompt || null,
+        interpretedParams: generationMetadata.interpretedParams || null
       },
+      
+      // Spotify warnings (if any)
+      spotifyWarnings: generationMetadata.spotifyWarnings || null,
       
       // Processing details
       processing: {
@@ -682,7 +706,17 @@ class WavExporter {
    * @private
    */
   formatMetadata(metadata) {
-    return `# ${metadata.generation.style.toUpperCase()} | ${metadata.instruments[0]?.instrumentFamily?.toUpperCase() || 'UNKNOWN'} | ${metadata.timing.bpm} BPM
+    // Determine content description based on timing and pattern
+    const contentDescription = this.determineContentDescription(metadata);
+    
+    // Build header with prompt if available
+    let header = `# ${metadata.generation.style.toUpperCase()} | ${metadata.instruments[0]?.instrumentFamily?.toUpperCase() || 'UNKNOWN'} | ${metadata.timing.bpm} BPM`;
+    
+    if (metadata.generation.originalPrompt) {
+      header += `\n\n**Prompt:** "${metadata.generation.originalPrompt}"\n\n**Content:** ${contentDescription}`;
+    }
+    
+    return `${header}
 
 ## Beat Generator - Audio File Metadata
 
@@ -753,10 +787,59 @@ ${metadata.instruments.map((inst, index) => `
 - All samples resampled to ${metadata.audioFormat.sampleRate}Hz if needed
 - Stereo samples converted to mono by channel averaging
 - Sample-accurate timing with ±1ms precision target
+${metadata.spotifyWarnings && metadata.spotifyWarnings.length > 0 ? `
+## Spotify Integration Warnings
+⚠️ The following Spotify references in your prompt could not be analyzed:
+${metadata.spotifyWarnings.map(warning => `- ${warning}`).join('\n')}
 
+This means the generated music is based on adjective analysis only, without Spotify audio features influence.
+` : ''}
 ---
 Generated by AI Music Backend v1.0 - Beat Generator Module
 `;
+  }
+
+  /**
+   * Determine content description based on metadata
+   * @private
+   */
+  determineContentDescription(metadata) {
+    const duration = metadata.audioFormat.duration;
+    const totalEvents = metadata.pattern.totalEvents;
+    const bars = Math.ceil(metadata.timing.totalSteps / (metadata.timing.stepResolution || 16));
+    const isPercussive = metadata.instruments.some(inst => 
+      inst.instrumentFamily === 'drums' || 
+      inst.instrumentFamily === 'percussion'
+    );
+    
+    // Determine type based on duration, events, and content
+    // Check if guitar for chord description
+    const isGuitar = metadata.instruments.some(inst => 
+      inst.instrumentFamily === 'guitar' || 
+      inst.noteType === 'guitar'
+    );
+    
+    if (duration < 2.0) {
+      return 'Short musical phrase';
+    } else if (duration < 4.0) {
+      if (totalEvents <= 4) {
+        if (isPercussive) return 'Short drum pattern';
+        if (isGuitar) return 'Guitar chord';
+        return 'Simple melodic phrase';
+      } else {
+        return isPercussive ? 'Drum loop' : 'Melodic pattern';
+      }
+    } else if (duration < 8.0) {
+      if (bars === 1) {
+        if (isPercussive) return 'Extended drum pattern';
+        if (isGuitar) return 'Guitar chord progression';
+        return 'Extended melodic phrase';
+      } else {
+        return isPercussive ? 'Multi-bar drum sequence' : 'Multi-bar melodic sequence';
+      }
+    } else {
+      return isPercussive ? 'Extended drum composition' : 'Extended musical composition';
+    }
   }
 
   /**

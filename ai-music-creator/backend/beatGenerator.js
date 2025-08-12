@@ -19,6 +19,7 @@ const { PatternGenerator } = require('./modules/patternGenerator');
 const { MelodicPatternGenerator } = require('./modules/melodicPatternGenerator');
 const { InstrumentSelector } = require('./modules/instrumentSelector');
 const { WavExporter } = require('./modules/wavExporter');
+const { PromptInterpreter } = require('./modules/promptInterpreter');
 
 /**
  * Main Beat Generator class
@@ -31,6 +32,7 @@ class BeatGenerator {
     this.melodicPatternGenerator = new MelodicPatternGenerator();
     this.instrumentSelector = new InstrumentSelector();
     this.wavExporter = new WavExporter();
+    this.promptInterpreter = new PromptInterpreter();
     
     this.defaultOptions = {
       bpm: 120,
@@ -151,6 +153,9 @@ class BeatGenerator {
         seed: config.seed || 'Random',
         algorithm: 'Modular Pattern Generator',
         testType: this.getTestType(config.songName),
+        originalPrompt: config.originalPrompt || null,
+        interpretedParams: config.interpretedParams || null,
+        spotifyWarnings: config.spotifyWarnings || null,
         parameters: {
           bpm: config.bpm,
           timeSignature: config.timeSignature,

@@ -11,13 +11,18 @@
 const path = require('path');
 const fs = require('fs');
 const { NSynthDownloader } = require('../nsynth-downloader');
+const { FreesoundLoader } = require('./freesoundLoader');
 
 class InstrumentSelector {
   constructor() {
     this.nsynthDownloader = new NSynthDownloader();
+    this.freesoundLoader = new FreesoundLoader();
     this.randomSeed = Date.now();
     this.randomIndex = 0;
     this.sampleCache = new Map();
+    
+    console.log('🎵 Initializing instrument selector with NSynth + Freesound support');
+    this.logAvailableInstruments();
     
     // Map drum note names to NSynth instrument families and MIDI pitches
     this.drumMapping = {
@@ -233,6 +238,81 @@ class InstrumentSelector {
   }
 
   /**
+   * Load Freesound sample for a specific note type
+   * @private
+   */
+  async loadFreesoundSampleForNote(noteType, instrumentFamily) {
+    // Check if Freesound has this instrument
+    if (!this.freesoundLoader.isInstrumentAvailable(instrumentFamily)) {
+      // Try drums as fallback for percussive sounds
+      if (instrumentFamily !== 'drums' && this.freesoundLoader.isInstrumentAvailable('drums')) {
+        instrumentFamily = 'drums';
+      } else {
+        console.warn(`⚠️  Freesound samples not available for ${instrumentFamily}`);
+        return null;
+      }
+    }
+    
+    const sample = this.freesoundLoader.getSampleForNote(instrumentFamily, noteType);
+    if (!sample) {
+      console.warn(`⚠️  No Freesound sample found for ${noteType}`);
+      return null;
+    }
+    
+    // Load the audio data
+    const sampleData = await this.freesoundLoader.loadSampleFile(sample.path);
+    
+    return {
+      noteType: noteType,
+      instrumentFamily: sample.instrumentFamily,
+      pitch: 60, // Default MIDI pitch for Freesound samples
+      velocity: 100, // Default velocity
+      freesoundSample: sample.name,
+      sampleFile: path.basename(sample.path),
+      path: sample.path,
+      audioData: sampleData,
+      source: 'Freesound'
+    };
+  }
+
+  /**
+   * Log available instruments from both NSynth and Freesound
+   * @private
+   */
+  logAvailableInstruments() {
+    console.log('🎵 Available instruments:');
+    
+    // NSynth instruments - check which ones have actual samples
+    const nsynthInstruments = Object.keys(this.nsynthDownloader.instrumentFolders)
+      .filter(instrument => {
+        const notes = this.nsynthDownloader.getInstrumentNotes(instrument);
+        return notes && notes.length > 0;
+      });
+    console.log(`   NSynth: ${nsynthInstruments.join(', ')} (${nsynthInstruments.length} total)`);
+    
+    // Freesound instruments
+    const freesoundMeta = this.freesoundLoader.getMetadata();
+    const freesoundAvailable = Object.entries(freesoundMeta.instruments)
+      .filter(([_, info]) => info.count > 0)
+      .map(([name, info]) => `${name}(${info.count})`);
+    
+    console.log(`   Freesound: ${freesoundAvailable.join(', ')}`);
+    
+    if (freesoundAvailable.length === 0) {
+      console.log('   📝 To download Freesound samples, run: FREESOUND_API_KEY="your_key" node freesound-downloader.js');
+    }
+  }
+
+  /**
+   * Check if any samples are available for an instrument
+   */
+  isInstrumentSupported(instrumentFamily) {
+    const nsynthSupported = this.nsynthDownloader.getInstrumentNotes(instrumentFamily).length > 0;
+    const freesoundSupported = this.freesoundLoader.isInstrumentAvailable(instrumentFamily);
+    return nsynthSupported || freesoundSupported;
+  }
+
+  /**
    * Analyze pattern to determine which note types are used
    * @private
    */
@@ -382,10 +462,26 @@ class InstrumentSelector {
   }
 
   /**
-   * Load NSynth sample for a specific note type
+   * Load sample for a specific note type - tries NSynth first, then Freesound fallback
    * @private
    */
   async loadSampleForNote(noteType, instrumentFamily, stylePrefs) {
+    // First try NSynth samples
+    const nsynthSample = await this.loadNSynthSampleForNote(noteType, instrumentFamily, stylePrefs);
+    if (nsynthSample) {
+      return nsynthSample;
+    }
+    
+    // If NSynth fails, try Freesound fallback
+    console.log(`🎵 Trying Freesound fallback for ${noteType} in ${instrumentFamily}`);
+    return await this.loadFreesoundSampleForNote(noteType, instrumentFamily);
+  }
+  
+  /**
+   * Load NSynth sample for a specific note type
+   * @private
+   */
+  async loadNSynthSampleForNote(noteType, instrumentFamily, stylePrefs) {
     const drumSpec = this.drumMapping[noteType];
     if (!drumSpec) {
       console.warn(`⚠️  Unknown note type: ${noteType}`);
@@ -395,7 +491,7 @@ class InstrumentSelector {
     // Get available notes for this instrument
     const availableNotes = this.nsynthDownloader.getInstrumentNotes(instrumentFamily);
     if (availableNotes.length === 0) {
-      console.warn(`⚠️  No samples available for ${instrumentFamily}`);
+      console.warn(`⚠️  No NSynth samples available for ${instrumentFamily}`);
       return null;
     }
     
@@ -415,7 +511,7 @@ class InstrumentSelector {
     }
     
     if (!selectedNote) {
-      console.warn(`⚠️  No suitable sample found for ${noteType} in ${instrumentFamily}`);
+      console.warn(`⚠️  No suitable NSynth sample found for ${noteType} in ${instrumentFamily}`);
       return null;
     }
     
@@ -427,9 +523,12 @@ class InstrumentSelector {
       instrumentFamily: instrumentFamily,
       pitch: selectedNote.pitch,
       velocity: selectedNote.velocity,
+      nsynthNote: `${selectedNote.pitch}-${selectedNote.velocity}`,
+      sampleFile: path.basename(selectedNote.path),
       path: selectedNote.path,
       audioData: sampleData,
-      drumSpec: drumSpec
+      drumSpec: drumSpec,
+      source: 'NSynth'
     };
   }
 

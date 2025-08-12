@@ -1,0 +1,68 @@
+{
+  "source": "Freesound.org (reorganized)",
+  "reorganizedAt": "2025-08-12T00:05:11.390Z",
+  "format": "NSynth-compatible",
+  "structure": "{MIDI_NOTE}-{VELOCITY}.mp3",
+  "instruments": {
+    "brassNsynth": {
+      "count": 5,
+      "format": "mp3",
+      "midiRange": {
+        "min": 57,
+        "max": 65
+      },
+      "velocityRange": {
+        "min": 25,
+        "max": 127
+      }
+    },
+    "clapsNsynth": {
+      "count": 5,
+      "format": "mp3",
+      "midiRange": {
+        "min": 39,
+        "max": 82
+      },
+      "velocityRange": {
+        "min": 25,
+        "max": 127
+      }
+    },
+    "drumsNsynth": {
+      "count": 13,
+      "format": "mp3",
+      "midiRange": {
+        "min": 35,
+        "max": 47
+      },
+      "velocityRange": {
+        "min": 25,
+        "max": 127
+      }
+    },
+    "pianoNsynth": {
+      "count": 14,
+      "format": "mp3",
+      "midiRange": {
+        "min": 48,
+        "max": 71
+      },
+      "velocityRange": {
+        "min": 25,
+        "max": 127
+      }
+    },
+    "synth_leadNsynth": {
+      "count": 5,
+      "format": "mp3",
+      "midiRange": {
+        "min": 60,
+        "max": 67
+      },
+      "velocityRange": {
+        "min": 25,
+        "max": 127
+      }
+    }
+  }
+}

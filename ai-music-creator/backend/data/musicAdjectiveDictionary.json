@@ -1,0 +1,481 @@
+{
+  "energy_tempo": {
+    "upbeat": {
+      "bpm": [120, 140],
+      "scale": "major",
+      "rhythm": "straight",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["drums", "bass", "synth"],
+      "energy": 0.8,
+      "mood": "positive"
+    },
+    "energetic": {
+      "bpm": [130, 150],
+      "scale": "major",
+      "rhythm": "driving",
+      "progression": ["I", "vi", "IV", "V"],
+      "instruments": ["drums", "guitar", "bass"],
+      "energy": 0.9,
+      "mood": "positive"
+    },
+    "fast": {
+      "bpm": [140, 180],
+      "scale": "minor",
+      "rhythm": "fast",
+      "progression": ["i", "VI", "VII", "i"],
+      "instruments": ["drums", "synth_lead"],
+      "energy": 0.9,
+      "mood": "intense"
+    },
+    "slow": {
+      "bpm": [60, 80],
+      "scale": "major",
+      "rhythm": "slow",
+      "progression": ["I", "vi", "ii", "V"],
+      "instruments": ["string", "keyboard"],
+      "energy": 0.3,
+      "mood": "peaceful"
+    },
+    "relaxed": {
+      "bpm": [70, 90],
+      "scale": "major",
+      "rhythm": "laid-back",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["guitar", "keyboard"],
+      "energy": 0.4,
+      "mood": "calm"
+    },
+    "driving": {
+      "bpm": [120, 140],
+      "scale": "minor",
+      "rhythm": "driving",
+      "progression": ["i", "bVII", "bVI", "i"],
+      "instruments": ["guitar", "bass", "drums"],
+      "energy": 0.85,
+      "mood": "forceful"
+    }
+  },
+  "texture_timbre": {
+    "bright": {
+      "bpm": [110, 130],
+      "scale": "major",
+      "rhythm": "crisp",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["guitar", "keyboard", "brass"],
+      "energy": 0.7,
+      "mood": "brilliant",
+      "effects": ["brightness", "clarity"]
+    },
+    "warm": {
+      "bpm": [80, 100],
+      "scale": "major",
+      "rhythm": "full",
+      "progression": ["I", "vi", "IV", "V"],
+      "instruments": ["guitar", "keyboard", "vocal"],
+      "energy": 0.5,
+      "mood": "cozy",
+      "effects": ["warmth", "richness"]
+    },
+    "dark": {
+      "bpm": [70, 90],
+      "scale": "phrygian",
+      "rhythm": "heavy",
+      "progression": ["i", "bII", "bVII", "i"],
+      "instruments": ["organ", "bass", "string"],
+      "energy": 0.4,
+      "mood": "ominous",
+      "effects": ["darkness", "depth"]
+    },
+    "cool": {
+      "bpm": [85, 105],
+      "scale": "dorian",
+      "rhythm": "cool",
+      "progression": ["i", "IV", "bVII", "i"],
+      "instruments": ["brass", "bass", "keyboard"],
+      "energy": 0.6,
+      "mood": "sophisticated",
+      "effects": ["space", "clarity"]
+    },
+    "rich": {
+      "bpm": [90, 110],
+      "scale": "major",
+      "rhythm": "full",
+      "progression": ["I", "vi", "IV", "V"],
+      "instruments": ["string", "brass", "organ"],
+      "energy": 0.6,
+      "mood": "luxurious",
+      "effects": ["richness", "depth"]
+    },
+    "thin": {
+      "bpm": [100, 120],
+      "scale": "minor",
+      "rhythm": "sparse",
+      "progression": ["i", "v", "iv"],
+      "instruments": ["flute", "keyboard"],
+      "energy": 0.4,
+      "mood": "minimal",
+      "effects": ["space"]
+    },
+    "thick": {
+      "bpm": [80, 100],
+      "scale": "major",
+      "rhythm": "dense",
+      "progression": ["I", "ii", "V", "vi"],
+      "instruments": ["string", "brass", "organ", "vocal"],
+      "energy": 0.7,
+      "mood": "full",
+      "effects": ["density", "richness"]
+    },
+    "crisp": {
+      "bpm": [115, 135],
+      "scale": "major",
+      "rhythm": "crisp",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["keyboard", "drums"],
+      "energy": 0.7,
+      "mood": "sharp",
+      "effects": ["clarity", "precision"]
+    },
+    "smooth": {
+      "bpm": [80, 100],
+      "scale": "major",
+      "rhythm": "flowing",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "guitar", "vocal"],
+      "energy": 0.5,
+      "mood": "silky",
+      "effects": ["smoothness"]
+    },
+    "rough": {
+      "bpm": [110, 130],
+      "scale": "minor",
+      "rhythm": "gritty",
+      "progression": ["i", "bVII", "bVI", "i"],
+      "instruments": ["guitar", "bass", "drums"],
+      "energy": 0.7,
+      "mood": "raw",
+      "effects": ["distortion"]
+    }
+  },
+  "emotional_atmospheric": {
+    "joyful": {
+      "bpm": [120, 140],
+      "scale": "major",
+      "rhythm": "bouncy",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["guitar", "keyboard", "drums"],
+      "energy": 0.8,
+      "mood": "happy"
+    },
+    "melancholic": {
+      "bpm": [70, 90],
+      "scale": "minor",
+      "rhythm": "longing",
+      "progression": ["i", "VI", "III", "VII"],
+      "instruments": ["keyboard", "string", "vocal"],
+      "energy": 0.3,
+      "mood": "sad"
+    },
+    "serene": {
+      "bpm": [60, 80],
+      "scale": "major",
+      "rhythm": "peaceful",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "string", "flute"],
+      "energy": 0.3,
+      "mood": "tranquil"
+    },
+    "haunting": {
+      "bpm": [65, 85],
+      "scale": "phrygian",
+      "rhythm": "eerie",
+      "progression": ["i", "bII", "bVII", "i"],
+      "instruments": ["organ", "string", "vocal"],
+      "energy": 0.4,
+      "mood": "ghostly",
+      "effects": ["reverb", "darkness"]
+    },
+    "euphoric": {
+      "bpm": [125, 145],
+      "scale": "major",
+      "rhythm": "ecstatic",
+      "progression": ["I", "vi", "IV", "V"],
+      "instruments": ["synth_lead", "drums", "bass"],
+      "energy": 0.9,
+      "mood": "blissful",
+      "effects": ["brightness", "energy"]
+    },
+    "mysterious": {
+      "bpm": [80, 100],
+      "scale": "phrygian",
+      "rhythm": "enigmatic",
+      "progression": ["i", "bII", "bVII", "i"],
+      "instruments": ["organ", "string", "synth_lead"],
+      "energy": 0.5,
+      "mood": "cryptic",
+      "effects": ["reverb", "mystery"]
+    },
+    "romantic": {
+      "bpm": [70, 90],
+      "scale": "major",
+      "rhythm": "tender",
+      "progression": ["I", "vi", "ii", "V"],
+      "instruments": ["string", "keyboard", "vocal"],
+      "energy": 0.5,
+      "mood": "loving"
+    },
+    "nostalgic": {
+      "bpm": [75, 95],
+      "scale": "major",
+      "rhythm": "wistful",
+      "progression": ["I", "vi", "IV", "V"],
+      "instruments": ["guitar", "keyboard", "string"],
+      "energy": 0.4,
+      "mood": "yearning"
+    },
+    "ethereal": {
+      "bpm": [60, 80],
+      "scale": "lydian",
+      "rhythm": "floating",
+      "progression": ["I", "II", "vi", "I"],
+      "instruments": ["vocal", "string", "organ"],
+      "energy": 0.3,
+      "mood": "otherworldly",
+      "effects": ["reverb", "delay", "chorus"]
+    },
+    "triumphant": {
+      "bpm": [110, 130],
+      "scale": "major",
+      "rhythm": "victorious",
+      "progression": ["I", "IV", "V", "I"],
+      "instruments": ["brass", "string", "drums"],
+      "energy": 0.9,
+      "mood": "victorious"
+    },
+    "dreamy": {
+      "bpm": [65, 85],
+      "scale": "major",
+      "rhythm": "floating",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "string", "vocal"],
+      "energy": 0.3,
+      "mood": "dreamy",
+      "effects": ["reverb", "chorus"]
+    },
+    "chill": {
+      "bpm": [70, 90],
+      "scale": "major",
+      "rhythm": "laid-back",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["guitar", "keyboard", "vocal"],
+      "energy": 0.4,
+      "mood": "relaxed"
+    },
+    "ambient": {
+      "bpm": [60, 80],
+      "scale": "major",
+      "rhythm": "floating",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["vocal", "organ", "string"],
+      "energy": 0.2,
+      "mood": "atmospheric",
+      "effects": ["reverb", "chorus"]
+    },
+    "peaceful": {
+      "bpm": [70, 90],
+      "scale": "major",
+      "rhythm": "peaceful",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "string", "flute"],
+      "energy": 0.3,
+      "mood": "serene"
+    },
+    "gentle": {
+      "bpm": [65, 85],
+      "scale": "major",
+      "rhythm": "gentle",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "vocal", "string"],
+      "energy": 0.3,
+      "mood": "tender"
+    },
+    "soft": {
+      "bpm": [70, 90],
+      "scale": "major",
+      "rhythm": "soft",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "vocal", "flute"],
+      "energy": 0.3,
+      "mood": "gentle"
+    },
+    "intense": {
+      "bpm": [130, 150],
+      "scale": "minor",
+      "rhythm": "intense",
+      "progression": ["i", "VI", "VII", "i"],
+      "instruments": ["guitar", "bass", "drums"],
+      "energy": 0.9,
+      "mood": "powerful"
+    },
+    "aggressive": {
+      "bpm": [140, 160],
+      "scale": "minor",
+      "rhythm": "heavy",
+      "progression": ["i", "bVII", "bVI", "i"],
+      "instruments": ["guitar", "bass", "drums"],
+      "energy": 0.9,
+      "mood": "intense",
+      "effects": ["distortion", "aggression"]
+    }
+  },
+  "genre_specific": {
+    "trap": {
+      "bpm": [130, 160],
+      "scale": "minor",
+      "rhythm": "trap",
+      "progression": ["i", "VI", "VII", "i"],
+      "instruments": ["synth_lead", "bass", "drums"],
+      "energy": 0.8,
+      "mood": "modern"
+    },
+    "dubstep": {
+      "bpm": [140, 150],
+      "scale": "minor",
+      "rhythm": "aggressive",
+      "progression": ["i", "VI", "VII", "i"],
+      "instruments": ["synth_lead", "bass"],
+      "energy": 0.9,
+      "mood": "aggressive",
+      "effects": ["distortion", "bass"]
+    },
+    "techno": {
+      "bpm": [120, 135],
+      "scale": "minor",
+      "rhythm": "mechanical",
+      "progression": ["i", "bVII", "i"],
+      "instruments": ["synth_lead", "drums", "bass"],
+      "energy": 0.8,
+      "mood": "industrial"
+    },
+    "house": {
+      "bpm": [118, 135],
+      "scale": "major",
+      "rhythm": "four-on-floor",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["synth_lead", "bass", "drums", "keyboard"],
+      "energy": 0.8,
+      "mood": "danceable"
+    },
+    "trance": {
+      "bpm": [128, 145],
+      "scale": "major",
+      "rhythm": "driving",
+      "progression": ["I", "vi", "IV", "V"],
+      "instruments": ["synth_lead", "bass", "drums"],
+      "energy": 0.8,
+      "mood": "euphoric"
+    },
+    "hiphop": {
+      "bpm": [85, 115],
+      "scale": "minor",
+      "rhythm": "boom-bap",
+      "progression": ["i", "bVI", "bVII", "i"],
+      "instruments": ["drums", "bass", "keyboard"],
+      "energy": 0.7,
+      "mood": "groove"
+    },
+    "reggae": {
+      "bpm": [60, 90],
+      "scale": "major",
+      "rhythm": "skank",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["guitar", "bass", "drums"],
+      "energy": 0.6,
+      "mood": "relaxed"
+    },
+    "country": {
+      "bpm": [90, 120],
+      "scale": "major",
+      "rhythm": "shuffle",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["guitar", "drums", "bass"],
+      "energy": 0.6,
+      "mood": "folksy"
+    },
+    "metal": {
+      "bpm": [140, 180],
+      "scale": "minor",
+      "rhythm": "brutal",
+      "progression": ["i", "bVI", "bVII", "i"],
+      "instruments": ["guitar", "bass", "drums"],
+      "energy": 0.9,
+      "mood": "heavy",
+      "effects": ["distortion", "aggression"]
+    },
+    "gospel": {
+      "bpm": [100, 120],
+      "scale": "major",
+      "rhythm": "soulful",
+      "progression": ["I", "vi", "ii", "V"],
+      "instruments": ["organ", "vocal", "brass"],
+      "energy": 0.7,
+      "mood": "uplifting"
+    },
+    "electronic": {
+      "bpm": [120, 140],
+      "scale": "minor",
+      "rhythm": "electronic",
+      "progression": ["i", "VI", "VII", "i"],
+      "instruments": ["synth_lead", "drums", "bass"],
+      "energy": 0.8,
+      "mood": "synthetic"
+    }
+  },
+  "classical_tempo": {
+    "brisk": {
+      "bpm": [120, 140],
+      "scale": "major",
+      "rhythm": "allegro",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["string", "brass", "keyboard"],
+      "energy": 0.8,
+      "mood": "lively"
+    },
+    "lively": {
+      "bpm": [130, 150],
+      "scale": "major",
+      "rhythm": "vivace",
+      "progression": ["I", "V", "vi", "IV"],
+      "instruments": ["guitar", "drums", "brass"],
+      "energy": 0.8,
+      "mood": "spirited"
+    },
+    "moderate": {
+      "bpm": [90, 110],
+      "scale": "major",
+      "rhythm": "moderato",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "string"],
+      "energy": 0.5,
+      "mood": "balanced"
+    },
+    "urgent": {
+      "bpm": [140, 160],
+      "scale": "minor",
+      "rhythm": "presto",
+      "progression": ["i", "VI", "VII", "i"],
+      "instruments": ["drums", "synth_lead"],
+      "energy": 0.9,
+      "mood": "frantic"
+    },
+    "lazy": {
+      "bpm": [60, 80],
+      "scale": "major",
+      "rhythm": "largo",
+      "progression": ["I", "vi", "V", "I"],
+      "instruments": ["keyboard", "string"],
+      "energy": 0.2,
+      "mood": "languid"
+    }
+  }
+}

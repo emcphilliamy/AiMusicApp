@@ -11,7 +11,6 @@ class NSynthDownloader {
     this.baseDataDir = path.join(__dirname, 'nsynth-data');
     this.instrumentFolders = {
       'guitar': path.join(this.baseDataDir, 'guitarNsynth'),
-      'piano': path.join(this.baseDataDir, 'pianoNsynth'),  
       'keyboard': path.join(this.baseDataDir, 'keyboardNsynth'),
       'bass': path.join(this.baseDataDir, 'bassNsynth'),
       'drums': path.join(this.baseDataDir, 'drumsNsynth'),

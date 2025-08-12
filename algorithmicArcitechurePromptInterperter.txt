@@ -1,0 +1,23 @@
+# parse prompt
+def interpret_prompt(prompt, lexicon, emb_index):
+    tokens = tokenize(prompt)
+    adjectives = extract_adjectives(tokens)
+    instruments = extract_instruments(tokens)
+    vec = combine_adjective_vectors(adjectives, lexicon, emb_index)
+    params = vectors_to_params(vec)
+    params['instruments'] = instruments
+    return params
+
+# select loops
+def select_loops_for_instrument(instrument, params, loops_db):
+    candidates = [loop for loop in loops_db if instrument in loop.tags]
+    scored = [(score_loop(loop, params), loop) for loop in candidates]
+    scored.sort(reverse=True)
+    return [s[1] for s in scored[:3]]  # top 3
+
+# align loop to BPM & key
+def transform_loop(loop_audio, loop_meta, target_bpm, target_key):
+    audio = time_stretch_to_bpm(loop_audio, loop_meta.bpm, target_bpm)
+    audio = pitch_shift_to_key(audio, loop_meta.key, target_key)
+    audio = quantize_onset_grid(audio)
+    return audio
