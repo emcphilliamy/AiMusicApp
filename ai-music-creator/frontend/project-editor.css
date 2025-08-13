@@ -1,0 +1,829 @@
+/* Project Editor Styles */
+.project-editor-container {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+/* Header Styles */
+.editor-header {
+    background: rgba(20, 20, 20, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 64px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.project-info h1 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.project-status {
+    font-size: 0.8rem;
+    color: #999;
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+}
+
+.transport-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.transport-btn {
+    background: #3a3a3a;
+    border: none;
+    color: #ffffff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.transport-btn:hover {
+    background: #4a4a4a;
+}
+
+.play-btn {
+    background: #4a9eff;
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+}
+
+.play-btn:hover {
+    background: #5aa5ff;
+}
+
+#record-btn {
+    color: #ff4444;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-btn {
+    background: #3a3a3a;
+    border: none;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-btn:hover {
+    background: #4a4a4a;
+}
+
+/* Main Editor Area */
+.editor-main {
+    display: flex;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+}
+
+/* Track List Sidebar */
+.track-list-sidebar {
+    width: 320px;
+    background: rgba(20, 20, 20, 0.8);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    height: 54px;
+    box-sizing: border-box;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    letter-spacing: -0.025em;
+}
+
+.add-track-btn {
+    background: linear-gradient(135deg, #4a9eff 0%, #3d8bdb 100%);
+    border: none;
+    color: #ffffff;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(74, 158, 255, 0.3);
+}
+
+.add-track-btn:hover {
+    background: linear-gradient(135deg, #5aa5ff 0%, #4a9eff 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+}
+
+.track-list {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* Timeline Area */
+.timeline-area {
+    flex: 1;
+    background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 8px 0;
+}
+
+.timeline-header {
+    height: 54px;
+    background: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+.timeline-content {
+    flex: 1;
+    position: relative;
+    background-image: 
+        /* Major measure lines (subtle blue) - every 80px starting at "0" mark */
+        linear-gradient(to right, rgba(74, 158, 255, 0.3) 1px, transparent 1px),
+        /* Quarter note lines */
+        linear-gradient(to right, rgba(128, 128, 128, 0.6) 1px, transparent 1px);
+    background-size: 
+        80px 100px,  /* Major measures every 80px */
+        20px 100px;  /* Quarter notes every 20px */
+    background-position: 
+        20px 0,     /* Major measures start at 20px (where "0" is) and repeat every 80px */
+        0px 0;      /* Quarter notes start at 0px (runway line) */
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.timeline-content::-webkit-scrollbar {
+    height: 8px;
+}
+
+.timeline-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.timeline-content::-webkit-scrollbar-thumb {
+    background: rgba(74, 158, 255, 0.6);
+    border-radius: 4px;
+}
+
+.timeline-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 158, 255, 0.8);
+}
+
+.timeline-tracks {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 10000px; /* Large width for infinite scrolling */
+    height: 100%;
+    min-height: 100%;
+}
+
+.timeline-track-lane {
+    height: 90px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin: 0.5rem 0.5rem 0.5rem 0px; /* Top, right, bottom, left - align left edge with 0 line */
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    backdrop-filter: blur(20px);
+}
+
+.timeline-track-lane:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.timeline-track-lane:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(2px);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.timeline-track-lane.selected {
+    background: rgba(74, 158, 255, 0.15);
+    border-color: rgba(74, 158, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(74, 158, 255, 0.3);
+}
+
+.measure-marker {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    min-width: 20px;
+    font-size: 0.75rem;
+    color: #aaa;
+    padding-left: 6px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.measure-marker::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #4a4a4a;
+}
+
+.measure-marker.major {
+    font-weight: 500;
+    color: #ccc;
+}
+
+.measure-marker.major::before {
+    background: rgba(74, 158, 255, 0.4);
+}
+
+
+/* Timeline Grid Helper Lines */
+.timeline-grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Timeline Playhead */
+.timeline-playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ff4444;
+    left: 0px;
+    z-index: 50;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+}
+
+.timeline-playhead::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -6px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #ff4444;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Audio Region Bars */
+.audio-region {
+    position: absolute;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.95) 0%, rgba(74, 158, 255, 0.75) 100%);
+    border: 1px solid rgba(74, 158, 255, 1);
+    border-radius: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: grab;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(74, 158, 255, 0.3);
+    z-index: 10;
+    user-select: none;
+    backdrop-filter: blur(5px);
+}
+
+.audio-region:hover {
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.9) 0%, rgba(74, 158, 255, 0.7) 100%);
+    transform: translateY(-50%) scale(1.02);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+}
+
+.audio-region.selected {
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.6);
+}
+
+.audio-region.dragging {
+    cursor: grabbing;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 8px 20px rgba(74, 158, 255, 0.5);
+    z-index: 100;
+}
+
+.audio-region.resizing {
+    cursor: ew-resize;
+}
+
+.audio-region-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    background: rgba(74, 158, 255, 0.15);
+    border-radius: 5px;
+}
+
+.audio-region-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.audio-region-waveform {
+    position: absolute;
+    bottom: 10px;
+    left: 8px;
+    right: 8px;
+    height: 40px;
+    opacity: 0.9;
+    pointer-events: none;
+    border-radius: 2px;
+}
+
+.audio-region-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: ew-resize;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    border-radius: 0 6px 6px 0;
+}
+
+.audio-region:hover .audio-region-resize-handle {
+    opacity: 1;
+}
+
+.audio-region.selected .audio-region-resize-handle {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Different instrument colors */
+.audio-region.drum {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.8) 0%, rgba(76, 175, 80, 0.6) 100%);
+    border-color: rgba(76, 175, 80, 1);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Waveform is now generated via canvas */
+
+.audio-region.bass {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.8) 0%, rgba(33, 150, 243, 0.6) 100%);
+    border-color: rgba(33, 150, 243, 1);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.audio-region.guitar {
+    background: linear-gradient(135deg, rgba(255, 87, 34, 0.8) 0%, rgba(255, 87, 34, 0.6) 100%);
+    border-color: rgba(255, 87, 34, 1);
+    box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3);
+}
+
+.audio-region.piano {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.8) 0%, rgba(156, 39, 176, 0.6) 100%);
+    border-color: rgba(156, 39, 176, 1);
+    box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+
+.audio-region.synth {
+    background: linear-gradient(135deg, rgba(0, 188, 212, 0.8) 0%, rgba(0, 188, 212, 0.6) 100%);
+    border-color: rgba(0, 188, 212, 1);
+    box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+}
+
+/* Track Component Styles */
+.track-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    transition: all 0.3s ease;
+    height: 90px;
+    box-sizing: border-box;
+    backdrop-filter: blur(20px);
+    cursor: pointer;
+}
+
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.track-item.selected {
+    background: rgba(74, 158, 255, 0.15);
+    border-color: rgba(74, 158, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(74, 158, 255, 0.3);
+}
+
+.track-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.track-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.track-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-instrument {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin: 0;
+}
+
+.track-controls {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.track-control-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: #3a3a3a;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.7rem;
+}
+
+.track-control-btn:hover {
+    background: #4a4a4a;
+}
+
+.track-control-btn.active {
+    background: #4a9eff;
+    color: #ffffff;
+}
+
+.track-control-btn.mute.active {
+    background: #ff6b6b;
+}
+
+.track-control-btn.record.active {
+    background: #ff4444;
+}
+
+.track-control-btn.play-track {
+    color: #4a9eff;
+}
+
+.track-control-btn.play-track.active {
+    background: #4a9eff;
+    color: #ffffff;
+}
+
+.track-sliders {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    align-items: center;
+}
+
+.slider-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.slider-label {
+    font-size: 0.7rem;
+    color: #aaa;
+    text-align: center;
+}
+
+.track-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #3a3a3a;
+    outline: none;
+    border-radius: 2px;
+}
+
+.track-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #4a9eff;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.track-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #4a9eff;
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+}
+
+/* Instrument-specific colors */
+.track-icon.drum {
+    background: #4CAF50;
+}
+
+.track-icon.bass {
+    background: #2196F3;
+}
+
+.track-icon.lead {
+    background: #FF9800;
+}
+
+.track-icon.vocal {
+    background: #E91E63;
+}
+
+.track-icon.piano {
+    background: #9C27B0;
+}
+
+.track-icon.guitar {
+    background: #FF5722;
+}
+
+.track-icon.synth {
+    background: #00BCD4;
+}
+
+/* Scrollbar Styles */
+.track-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.track-list::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.track-list::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 3px;
+}
+
+.track-list::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .track-list-sidebar {
+        width: 250px;
+    }
+    
+    .track-name {
+        font-size: 0.85rem;
+    }
+    
+    .track-instrument {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .editor-header {
+        padding: 0.5rem;
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 60px;
+    }
+    
+    .header-left, .header-right {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .header-center {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+    
+    .track-list-sidebar {
+        width: 200px;
+    }
+    
+    .project-info h1 {
+        font-size: 1rem;
+    }
+    
+    .header-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .transport-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .play-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .track-list-sidebar {
+        width: 180px;
+    }
+    
+    .track-item {
+        padding: 0.5rem;
+    }
+    
+    .track-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+    }
+    
+    .track-control-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem;
+    }
+    
+    .track-sliders {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .slider-group {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .slider-label {
+        min-width: 50px;
+        text-align: left;
+    }
+}
+
+/* High DPI Display Support */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .track-icon {
+        image-rendering: -webkit-optimize-contrast;
+    }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+    .project-editor-container {
+        background: #0a0a0a;
+    }
+    
+    .editor-header {
+        background: #1a1a1a;
+    }
+    
+    .track-list-sidebar {
+        background: #111111;
+    }
+}
